@@ -1,5 +1,5 @@
-from prakt.nw import NeedlemanWunschBase
 from needleman_wunsch import NeedlemanWunsch
+from prakt.nw import NeedlemanWunschBase
 
 
 def test_instance():
@@ -27,7 +27,6 @@ def test_example():
     assert alignments[0] == ("Fancy_SequenceA_",
                              "Fancys_equence_B")
 
-
 # def test_example_fail():
 #     """Example of a failing test."""
 #
@@ -37,6 +36,6 @@ def test_example():
 #                     "data/blosum62.txt",
 #                     5,
 #                     True)
-#     (id_seq1, seq1, id_seq2, seq2, score, alignments) = result
+#     (id_seq1, seq1, id_seq2, seq2, score, tracebacks) = result
 #
-#     assert len(alignments) != 1
+#     assert len(tracebacks) != 1

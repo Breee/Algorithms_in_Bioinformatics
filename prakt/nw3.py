@@ -2,7 +2,6 @@ import abc
 
 
 class NeedlemanWunsch3Base(metaclass=abc.ABCMeta):
-
     """
     Base class for Needleman-Wunsch implementations.
     """
@@ -20,7 +19,7 @@ class NeedlemanWunsch3Base(metaclass=abc.ABCMeta):
             seq_fasta_fn: path to fasta file containing sequences
             subst_matrix_fn: path to substitution matrix
             cost_gap_open: cost to open a gap
-            complete_traceback: If True, return all optimal alignments. Otherwise choose a random alignment.
+            complete_traceback: If True, return all optimal tracebacks. Otherwise choose a random alignment.
 
         Returns:
             tuple of
@@ -31,5 +30,5 @@ class NeedlemanWunsch3Base(metaclass=abc.ABCMeta):
              id_seq3: fasta id of second sequence,
              seq3: second sequence,
              score: score of optimal alignment,
-             [(aln_string_seq1, aln_string_seq2, aln_string_seq3), ...]: list of tuples containing optimal alignments)
+             [(aln_string_seq1, aln_string_seq2, aln_string_seq3), ...]: list of tuples containing optimal tracebacks)
         """
