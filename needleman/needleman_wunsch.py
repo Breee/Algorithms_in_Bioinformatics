@@ -100,18 +100,17 @@ class NeedlemanWunsch(object):
         >>> nw.calculate_similarity_matrix("AATC","AACT")
         >>> nw.scoring_matrix
         array([[ 0., -1., -2., -3., -4.],
-               [-1.,  4.,  3.,  2.,  1.],
-               [-2.,  3.,  8.,  7.,  6.],
-               [-3.,  2.,  7.,  7., 12.],
-               [-4.,  1.,  6., 16., 15.]])
+               [-1.,  5., 11., 17., 23.],
+               [-2., 11., 17., 23., 29.],
+               [-3., 17., 23., 29., 35.],
+               [-4., 23., 29., 35., 41.]])
+
 
         Function which calculates the scoring matrix using needleman-wunsch.
         :param seq1: First sequence.
         :param seq2: Second sequence
         :return: void
         """
-        seq1 = "€" + seq1
-        seq2 = "€" + seq2
         # initialize scoring matrix.
         self.init_scoring_matrix(seq1=seq1, seq2=seq2)
         # next we want to fill the scoring matrix.
@@ -223,7 +222,6 @@ class NeedlemanWunsch(object):
                               operations=alignment[2][1:],
                               score=self.desired_traceback.score))
         self.alignments = alignments
-        print(self.alignments)
 
     def run(self, fasta_files, complete_traceback=False):
         """
@@ -231,7 +229,8 @@ class NeedlemanWunsch(object):
         >>> nw = NeedlemanWunsch(substitution_matrix=blossum62,similarity=True)
         >>> fasta = ["../data/test1.fn", "../data/test2.fn"]
         >>> nw.run(fasta_files=fasta)
-        ('test1', Seq('MNSERSDVTLYQPFLDYAIAYMR', SingleLetterAlphabet()), 'test2', Seq('MNSERSDVTLY', SingleLetterAlphabet()), 36.0, [(NSERSDVTLYQPFLDYAIAYMR, NSERSDVTL-----Y-------, 36), (NSERSDVTLYQPFLD, NSERSDVTLY-----, 36)])
+        ('test1', Seq('MNSERSDVTLYQPFLDYAIAYMR', SingleLetterAlphabet()), 'test2', Seq('MNSERSDVTLY', SingleLetterAlphabet()), 36.0, (NSERSDVTLYQPFLDYAIAYMR, NSERSDVTL-----Y-------, 36))
+
 
         :param fasta_files:
         :param complete_traceback:
@@ -240,6 +239,9 @@ class NeedlemanWunsch(object):
         sequences = parse_fasta_files(fasta_files)
         seq1 = sequences[0]
         seq2 = sequences[1]
+        # add character wih represents the empty word
+        seq1.seq = "€" + seq1.seq
+        seq2.seq = "€" + seq2.seq
         self.calculate_similarity_matrix(seq1.seq, seq2.seq)
         self.desired_traceback = self.traceback_matrix[len(seq1.seq) - 1][len(seq2.seq) - 1]
         self.split_traceback_set()
@@ -265,5 +267,5 @@ if __name__ == '__main__':
     nw = NeedlemanWunsch(match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, substitution_matrix=blossum62,
                          similarity=True)
     fasta_files = ["../data/test1.fn", "../data/test2.fn"]
-    res = nw.run(fasta_files=fasta_files)
+    res = nw.run(fasta_files=fasta_files, complete_traceback=True)
     print(res)
