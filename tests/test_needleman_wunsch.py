@@ -1,4 +1,4 @@
-from needleman_wunsch import NeedlemanWunsch
+from needleman.needleman_wunsch import NeedlemanWunsch
 from prakt.nw import NeedlemanWunschBase
 
 
