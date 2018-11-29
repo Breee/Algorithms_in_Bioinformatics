@@ -1,7 +1,12 @@
+from pprint import pformat
+
 import numpy
 from Bio.SubsMat import MatrixInfo
 
+from logger import log
 from utility.utils import Alignment, Operation, ScoringType, parse_fasta_files
+
+LOGGER = log.setup_custom_logger("needleman_wunsch", logfile="logfile.log")
 
 
 class TracebackCell(object):
@@ -32,12 +37,12 @@ class NeedlemanWunsch(object):
     def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=6,
                  substitution_matrix=MatrixInfo.blosum62,
                  similarity=True):
+        LOGGER.info("Initialzing needleman-wunsch.")
         # scores
         self.match_scoring = match_scoring
         self.indel_scoring = indel_scoring
         self.mismatch_scoring = mismatch_scoring
-        self.gap_penalty = gap_penalty
-        # Subsitution matrices (PAM/BLOSSOM).
+        # Subsitution matrices (PAM/BLOSSOM), default is blossom62.
         self.substitution_matrix = substitution_matrix
         # The traceback matrix contains TracebackCell objects,
         self.traceback_matrix = numpy.zeros(shape=(1, 1), dtype=object)
@@ -49,9 +54,14 @@ class NeedlemanWunsch(object):
         self.scoring_matrix = numpy.zeros(shape=(1, 1))
         if similarity:
             self.scoring_type = ScoringType.SIMILARITY
+            self.gap_penalty = abs(gap_penalty) * (-1)
         else:
             self.scoring_type = ScoringType.DISTANCE
+            self.gap_penalty = abs(gap_penalty)
         self.alignments = []
+        LOGGER.info("Scoring-Type: %s" % self.scoring_type)
+        LOGGER.info("Substitution Matrix:\n %s" % pformat(self.substitution_matrix))
+        LOGGER.info("Gap Penalty: %d" % self.gap_penalty)
 
     def init_scoring_matrix(self, seq1, seq2):
         """
@@ -60,6 +70,7 @@ class NeedlemanWunsch(object):
         :param seq2: DNA/RNA sequence
         :return:
         """
+        LOGGER.info("Initializing Scoring Matrix.")
         # initialize scoring matrix with all zeros
         self.scoring_matrix = numpy.zeros(shape=(len(seq1), len(seq2)))
         self.traceback_matrix = numpy.zeros(shape=(len(seq1), len(seq2)), dtype=object)
@@ -77,8 +88,10 @@ class NeedlemanWunsch(object):
             self.scoring_matrix.T[0][i] = self.mismatch_scoring * i
             self.traceback_matrix.T[0][i] = TracebackCell(type=Operation.INSERTION,
                                                           predecessors=[self.traceback_matrix.T[0][i - 1]], score=score)
+        LOGGER.info("Done.")
 
     def score(self, letter1, letter2):
+        LOGGER.debug("Calculating score S(%s,%s)" % (letter1, letter2))
         if self.substitution_matrix:
             pair = (letter1, letter2)
             if pair not in self.substitution_matrix:
@@ -88,16 +101,15 @@ class NeedlemanWunsch(object):
             else:
                 raise KeyError("%s and %s  do not appear as pair in substitution matrix: %s" % (
                     letter1, letter2, self.substitution_matrix))
-
         elif letter1 == letter2:
             return self.match_scoring
         else:
             return self.mismatch_scoring
 
-    def calculate_similarity_matrix(self, seq1, seq2):
+    def calculate_scoring_matrix(self, seq1, seq2):
         """
         >>> nw = NeedlemanWunsch()
-        >>> nw.calculate_similarity_matrix("AATC","AACT")
+        >>> nw.calculate_scoring_matrix("AATC","AACT")
         >>> nw.scoring_matrix
         array([[ 0., -1., -2., -3., -4.],
                [-1.,  5., 11., 17., 23.],
@@ -113,11 +125,14 @@ class NeedlemanWunsch(object):
         """
         # initialize scoring matrix.
         self.init_scoring_matrix(seq1=seq1, seq2=seq2)
+        LOGGER.info("Calculating Score Matrix.")
         # next we want to fill the scoring matrix.
         for i in range(1, len(seq1)):
             for j in range(1, len(seq2)):
+                letter1 = seq1[i]
+                letter2 = seq2[j]
                 # we calculate the score of the letters in the sequences (Match/Mismatch)
-                score = self.score(seq1[i], seq2[j])
+                score = self.score(letter1, letter2)
                 # Top left cell
                 match = self.scoring_matrix[i - 1][j - 1] + score
                 # Top cell
@@ -145,6 +160,9 @@ class NeedlemanWunsch(object):
                                                       traceback_j=j - 1, score_i=i, score_j=j)
 
                 self.traceback_matrix[i][j] = cell
+        LOGGER.debug(pformat(self.traceback_matrix))
+        LOGGER.debug(pformat(self.desired_traceback))
+        LOGGER.info("Done.")
 
     def create_traceback_cell(self, cell, operation, traceback_i, traceback_j, score_i, score_j):
         """
@@ -187,8 +205,10 @@ class NeedlemanWunsch(object):
 
     def split_traceback_set(self):
         """Function to kickoff exploration of a TracebackCell"""
+        LOGGER.info("Kicking off exploration of Traceback.")
         traceback_id = 0
         self.explore(self.desired_traceback, traceback_id)
+        LOGGER.info("Done.")
 
     def generate_alignments(self, sequence1, sequence2):
         """
@@ -223,7 +243,7 @@ class NeedlemanWunsch(object):
                               score=self.desired_traceback.score))
         self.alignments = alignments
 
-    def run(self, fasta_files, complete_traceback=False):
+    def run(self, seq1, seq2, complete_traceback=False):
         """
         >>> blossum62 = MatrixInfo.blosum62
         >>> nw = NeedlemanWunsch(substitution_matrix=blossum62,similarity=True)
@@ -236,13 +256,10 @@ class NeedlemanWunsch(object):
         :param complete_traceback:
         :return:
         """
-        sequences = parse_fasta_files(fasta_files)
-        seq1 = sequences[0]
-        seq2 = sequences[1]
         # add character wih represents the empty word
         seq1.seq = "€" + seq1.seq
         seq2.seq = "€" + seq2.seq
-        self.calculate_similarity_matrix(seq1.seq, seq2.seq)
+        self.calculate_scoring_matrix(seq1.seq, seq2.seq)
         self.desired_traceback = self.traceback_matrix[len(seq1.seq) - 1][len(seq2.seq) - 1]
         self.split_traceback_set()
         self.generate_alignments(sequence1=seq1.seq, sequence2=seq2.seq)
@@ -267,5 +284,8 @@ if __name__ == '__main__':
     nw = NeedlemanWunsch(match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, substitution_matrix=blossum62,
                          similarity=True)
     fasta_files = ["../data/test1.fn", "../data/test2.fn"]
-    res = nw.run(fasta_files=fasta_files, complete_traceback=True)
+    sequences = parse_fasta_files(fasta_files)
+    seq1 = sequences[0]
+    seq2 = sequences[1]
+    res = nw.run(seq1, seq2, complete_traceback=True)
     print(res)
