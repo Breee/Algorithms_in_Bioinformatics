@@ -1,3 +1,4 @@
+import logging
 from pprint import pformat
 
 import numpy
@@ -78,17 +79,19 @@ class NeedlemanWunsch(object):
         self.traceback_matrix[0][0] = TracebackCell(type=Operation.ROOT, predecessors=[], score=0)
         # iterate top row and initialize values
         for i in range(1, len(self.scoring_matrix[0])):
-            score = self.mismatch_scoring * i
+            score = self.gap_penalty * i
             self.scoring_matrix[0][i] = score
             self.traceback_matrix[0][i] = TracebackCell(type=Operation.DELETION,
                                                         predecessors=[self.traceback_matrix[0][i - 1]], score=score)
             # iterate first column and initialize values
         for i in range(1, len(self.scoring_matrix.T[0])):
-            score = self.mismatch_scoring * i
-            self.scoring_matrix.T[0][i] = self.mismatch_scoring * i
+            score = self.gap_penalty * i
+            self.scoring_matrix.T[0][i] = score
             self.traceback_matrix.T[0][i] = TracebackCell(type=Operation.INSERTION,
                                                           predecessors=[self.traceback_matrix.T[0][i - 1]], score=score)
         LOGGER.info("Done.")
+        assert self.scoring_matrix.shape == (len(seq1), len(seq2))
+        assert self.traceback_matrix.shape == (len(seq1), len(seq2))
 
     def score(self, letter1, letter2):
         LOGGER.debug("Calculating score S(%s,%s)" % (letter1, letter2))
@@ -111,11 +114,10 @@ class NeedlemanWunsch(object):
         >>> nw = NeedlemanWunsch()
         >>> nw.calculate_scoring_matrix("AATC","AACT")
         >>> nw.scoring_matrix
-        array([[ 0., -1., -2., -3., -4.],
-               [-1.,  5., 11., 17., 23.],
-               [-2., 11., 17., 23., 29.],
-               [-3., 17., 23., 29., 35.],
-               [-4., 23., 29., 35., 41.]])
+        array([[  0.,  -6., -12., -18.],
+               [ -6.,   4.,   3.,   2.],
+               [-12.,   3.,   3.,   8.],
+               [-18.,   2.,  12.,  11.]])
 
 
         Function which calculates the scoring matrix using needleman-wunsch.
@@ -136,9 +138,9 @@ class NeedlemanWunsch(object):
                 # Top left cell
                 match = self.scoring_matrix[i - 1][j - 1] + score
                 # Top cell
-                delete = self.scoring_matrix[i - 1][j] + self.indel_scoring
+                delete = self.scoring_matrix[i - 1][j] + self.gap_penalty
                 # Left cell
-                insert = self.scoring_matrix[i][j - 1] + self.indel_scoring
+                insert = self.scoring_matrix[i][j - 1] + self.gap_penalty
                 # We calculate the maximum / minimum
                 # If we want similarity, we maximize. If we want distance we minimize
                 if self.scoring_type == ScoringType.DISTANCE:
@@ -148,21 +150,22 @@ class NeedlemanWunsch(object):
                 self.scoring_matrix[i][j] = optimum
                 # We then update the traceback matrix.
                 cell = None
+                pre = []
                 if optimum == match:
+                    pre.append((i - 1, j - 1, Operation.MATCH))
                     cell = self.create_traceback_cell(cell=cell, operation=Operation.MATCH, traceback_i=i - 1,
                                                       traceback_j=j - 1, score_i=i, score_j=j)
                 if optimum == delete:
+                    pre.append((i - 1, j, Operation.DELETION))
                     cell = self.create_traceback_cell(cell=cell, operation=Operation.DELETION, traceback_i=i - 1,
                                                       traceback_j=j, score_i=i, score_j=j)
-
                 if optimum == insert:
+                    pre.append((i, j - 1, Operation.INSERTION))
                     cell = self.create_traceback_cell(cell=cell, operation=Operation.INSERTION, traceback_i=i,
                                                       traceback_j=j - 1, score_i=i, score_j=j)
-
+                print(pre)
                 self.traceback_matrix[i][j] = cell
-        LOGGER.debug(pformat(self.traceback_matrix))
-        LOGGER.debug(pformat(self.desired_traceback))
-        LOGGER.info("Done.")
+        print(self.scoring_matrix)
 
     def create_traceback_cell(self, cell, operation, traceback_i, traceback_j, score_i, score_j):
         """
@@ -219,6 +222,7 @@ class NeedlemanWunsch(object):
         """
         alignments = []
         for id, traceback in self.tracebacks.items():
+            LOGGER.info("Length of tb: %d" % len(traceback))
             alignment = [[], [], []]
             i = 0
             j = 0
@@ -237,6 +241,14 @@ class NeedlemanWunsch(object):
                     alignment[1].append(sequence2[j])
                     j += 1
                 alignment[2].append(op)
+                if LOGGER.level == logging.DEBUG:
+                    LOGGER.debug("######################")
+                    LOGGER.debug("op: %s" % op)
+                    LOGGER.debug("i:%d" % i)
+                    LOGGER.debug("j:%d" % j)
+                    LOGGER.debug("".join(alignment[0]), "len: %d" % len(alignment[0]))
+                    LOGGER.debug("".join(alignment[1]), "len: %d" % len(alignment[1]))
+                    LOGGER.debug("######################")
             alignments.append(
                     Alignment(sequence1="".join(alignment[0][1:]), sequence2="".join(alignment[1][1:]),
                               operations=alignment[2][1:],
@@ -245,11 +257,12 @@ class NeedlemanWunsch(object):
 
     def run(self, seq1, seq2, complete_traceback=False):
         """
-        >>> blossum62 = MatrixInfo.blosum62
-        >>> nw = NeedlemanWunsch(substitution_matrix=blossum62,similarity=True)
+        >>> nw = NeedlemanWunsch()
         >>> fasta = ["../data/test1.fn", "../data/test2.fn"]
-        >>> nw.run(fasta_files=fasta)
-        ('test1', Seq('MNSERSDVTLYQPFLDYAIAYMR', SingleLetterAlphabet()), 'test2', Seq('MNSERSDVTLY', SingleLetterAlphabet()), 36.0, (NSERSDVTLYQPFLDYAIAYMR, NSERSDVTL-----Y-------, 36))
+        >>> sequences = parse_fasta_files(fasta)
+        >>> res = nw.run(sequences[0],sequences[1])
+        >>> res
+        ('test1', Seq('€AAAC', SingleLetterAlphabet()), 'test2', Seq('€AAAG', SingleLetterAlphabet()), 10.0, (AAA-C, AAAG-, 10))
 
 
         :param fasta_files:
@@ -281,11 +294,14 @@ class NeedlemanWunsch(object):
 if __name__ == '__main__':
     blossum62 = MatrixInfo.blosum62
     # run Needleman-Wunsch with some parameters
-    nw = NeedlemanWunsch(match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, substitution_matrix=blossum62,
-                         similarity=True)
-    fasta_files = ["../data/test1.fn", "../data/test2.fn"]
+    nw = NeedlemanWunsch()
+    fasta_files = ["../data/test3.fn"]
     sequences = parse_fasta_files(fasta_files)
     seq1 = sequences[0]
     seq2 = sequences[1]
     res = nw.run(seq1, seq2, complete_traceback=True)
+    LOGGER.debug("scoring:", nw.scoring_matrix)
+    LOGGER.debug("Traceback-matrix:\n %s" % pformat(nw.traceback_matrix))
+    LOGGER.debug("Traceback:\n %s" % pformat(nw.desired_traceback))
+    LOGGER.debug("Done.")
     print(res)
