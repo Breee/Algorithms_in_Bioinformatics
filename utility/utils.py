@@ -22,9 +22,10 @@ class Alignment(object):
         self.sequence2 = sequence2
         self.operations = operations
         self.score = score
+        print(self)
 
     def __repr__(self):
-        return "(%s, %s, %d)" % (self.sequence1, self.sequence2, self.score)
+        return "Alignment: (%s, %s), Score: %d" % (self.sequence1, self.sequence2, self.score)
 
 
 def parse_fasta_files(files):

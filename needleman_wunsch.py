@@ -4,30 +4,28 @@ from pprint import pformat
 import numpy
 from Bio.SubsMat import MatrixInfo
 
-from logger import log
+from logger.log import setup_custom_logger
 from utility.utils import Alignment, Operation, ScoringType, parse_fasta_files
 
-LOGGER = log.setup_custom_logger("needleman_wunsch", logfile="logfile.log")
+LOGGER = setup_custom_logger("needleman_wunsch", logfile="logfile.log")
 
 
 class TracebackCell(object):
     """
     A TracebackCell object which consists of
-    type: Type of Operation (MATCH/INSERTION/DELETION/MISMATCH/ROOT) of this Cell.
     predecessors: a list of TracebackCells, which are predecessors of this Cell.
     score:  score of this Cell.
     """
 
-    def __init__(self, type, predecessors, score):
-        self.type = type
+    def __init__(self, predecessors, score):
         self.predecessors = predecessors
         self.score = score
 
     def __str__(self):
-        return "(%s, %s, %s)" % (self.type, self.predecessors, self.score)
+        return "(%s, %s)" % (self.predecessors, self.score)
 
     def __repr__(self):
-        return "(%s, %s, %s)" % (self.type, self.predecessors, self.score)
+        return "(%s, %s)" % (self.predecessors, self.score)
 
 
 class NeedlemanWunsch(object):
@@ -48,9 +46,9 @@ class NeedlemanWunsch(object):
         # The traceback matrix contains TracebackCell objects,
         self.traceback_matrix = numpy.zeros(shape=(1, 1), dtype=object)
         # Will store the TracebakCell in the bottom right of the Traceback Matrix.
-        self.desired_traceback = TracebackCell(None, None, None)
+        self.desired_traceback = TracebackCell(None, None)
         # All tracebacks
-        self.tracebacks = dict()
+        self.tracebacks = list()
         # The scoring matrix, which is used to calculate the optimal alignment scores.
         self.scoring_matrix = numpy.zeros(shape=(1, 1))
         if similarity:
@@ -61,7 +59,7 @@ class NeedlemanWunsch(object):
             self.gap_penalty = abs(gap_penalty)
         self.alignments = []
         LOGGER.info("Scoring-Type: %s" % self.scoring_type)
-        LOGGER.info("Substitution Matrix:\n %s" % pformat(self.substitution_matrix))
+        LOGGER.debug("Substitution Matrix:\n %s" % pformat(self.substitution_matrix))
         LOGGER.info("Gap Penalty: %d" % self.gap_penalty)
 
     def init_scoring_matrix(self, seq1, seq2):
@@ -76,19 +74,19 @@ class NeedlemanWunsch(object):
         self.scoring_matrix = numpy.zeros(shape=(len(seq1), len(seq2)))
         self.traceback_matrix = numpy.zeros(shape=(len(seq1), len(seq2)), dtype=object)
         self.scoring_matrix[0][0] = 0
-        self.traceback_matrix[0][0] = TracebackCell(type=Operation.ROOT, predecessors=[], score=0)
+        self.traceback_matrix[0][0] = TracebackCell(predecessors=[], score=0)
         # iterate top row and initialize values
         for i in range(1, len(self.scoring_matrix[0])):
             score = self.gap_penalty * i
             self.scoring_matrix[0][i] = score
-            self.traceback_matrix[0][i] = TracebackCell(type=Operation.DELETION,
-                                                        predecessors=[self.traceback_matrix[0][i - 1]], score=score)
+            self.traceback_matrix[0][i] = TracebackCell(
+                    predecessors=[(Operation.DELETION, self.traceback_matrix[0][i - 1])], score=score)
             # iterate first column and initialize values
         for i in range(1, len(self.scoring_matrix.T[0])):
             score = self.gap_penalty * i
             self.scoring_matrix.T[0][i] = score
-            self.traceback_matrix.T[0][i] = TracebackCell(type=Operation.INSERTION,
-                                                          predecessors=[self.traceback_matrix.T[0][i - 1]], score=score)
+            self.traceback_matrix.T[0][i] = TracebackCell(
+                    predecessors=[(Operation.INSERTION, self.traceback_matrix.T[0][i - 1])], score=score)
         LOGGER.info("Done.")
         assert self.scoring_matrix.shape == (len(seq1), len(seq2))
         assert self.traceback_matrix.shape == (len(seq1), len(seq2))
@@ -115,10 +113,9 @@ class NeedlemanWunsch(object):
         >>> nw.calculate_scoring_matrix("AATC","AACT")
         >>> nw.scoring_matrix
         array([[  0.,  -6., -12., -18.],
-               [ -6.,   4.,   3.,   2.],
-               [-12.,   3.,   3.,   8.],
-               [-18.,   2.,  12.,  11.]])
-
+               [ -6.,   4.,  -2.,  -8.],
+               [-12.,  -2.,   3.,   3.],
+               [-18.,  -8.,   7.,   2.]])
 
         Function which calculates the scoring matrix using needleman-wunsch.
         :param seq1: First sequence.
@@ -127,7 +124,7 @@ class NeedlemanWunsch(object):
         """
         # initialize scoring matrix.
         self.init_scoring_matrix(seq1=seq1, seq2=seq2)
-        LOGGER.info("Calculating Score Matrix.")
+        LOGGER.debug("Calculating Score Matrix.")
         # next we want to fill the scoring matrix.
         for i in range(1, len(seq1)):
             for j in range(1, len(seq2)):
@@ -149,68 +146,56 @@ class NeedlemanWunsch(object):
                     optimum = max(match, delete, insert)
                 self.scoring_matrix[i][j] = optimum
                 # We then update the traceback matrix.
-                cell = None
                 pre = []
                 if optimum == match:
-                    pre.append((i - 1, j - 1, Operation.MATCH))
-                    cell = self.create_traceback_cell(cell=cell, operation=Operation.MATCH, traceback_i=i - 1,
-                                                      traceback_j=j - 1, score_i=i, score_j=j)
+                    pre.append({"traceback_i": i - 1, "traceback_j": j - 1, "operation": Operation.MATCH})
                 if optimum == delete:
-                    pre.append((i - 1, j, Operation.DELETION))
-                    cell = self.create_traceback_cell(cell=cell, operation=Operation.DELETION, traceback_i=i - 1,
-                                                      traceback_j=j, score_i=i, score_j=j)
+                    pre.append({"traceback_i": i - 1, "traceback_j": j, "operation": Operation.DELETION})
                 if optimum == insert:
-                    pre.append((i, j - 1, Operation.INSERTION))
-                    cell = self.create_traceback_cell(cell=cell, operation=Operation.INSERTION, traceback_i=i,
-                                                      traceback_j=j - 1, score_i=i, score_j=j)
-                print(pre)
+                    pre.append({"traceback_i": i, "traceback_j": j - 1, "operation": Operation.INSERTION})
+                cell = self.create_traceback_cell(predecessors=pre, score_i=i, score_j=j)
                 self.traceback_matrix[i][j] = cell
-        print(self.scoring_matrix)
 
-    def create_traceback_cell(self, cell, operation, traceback_i, traceback_j, score_i, score_j):
+    def create_traceback_cell(self, predecessors, score_i, score_j):
         """
         Helper function to create and update TracebackCells
         :param cell: TracebackCell.
-        :param operation: Type of operation (Operation enum).
-        :param traceback_i: position i in traceback_matrix of predecessor.
-        :param traceback_j: position j in traceback_matrix of predecessor.
+        :param predecessors: predecessor states. e.g. [{"traceback_i": i - 1, "traceback_j": j, "operation": Operation.DELETION}]
         :param score_i: position i in scoring matrix.
         :param score_j: positon j in scoring matrix.
         :return:
         """
-        tb_cell = TracebackCell(type=operation,
-                                predecessors=[self.traceback_matrix[traceback_i][traceback_j]],
-                                score=self.scoring_matrix[score_i][score_j])
-        if cell:
-            cell.predecessors.append(tb_cell)
-        else:
-            cell = tb_cell
-        return cell
 
-    def explore(self, traceback_cell: TracebackCell, traceback_id=0):
+        tb_cell = TracebackCell(predecessors=[],
+                                score=self.scoring_matrix[score_i][score_j])
+        for pre in predecessors:
+            tb_cell.predecessors.append((pre["operation"],
+                                         self.traceback_matrix[pre["traceback_i"]][pre["traceback_j"]])
+                                        )
+        return tb_cell
+
+    def explore(self, traceback_cell: TracebackCell, current_traceback=list()):
         """
         Function to explore a TracebackCell recursively to obtain all tracebacks to the root.
         :param traceback_cell: TracebackCell from which you want to start backtracking.
         :param traceback_id: ID of the current traceback you explore.
         :return: void, results are stored in member self.tracebacks (dictionary)
         """
-        if traceback_id in self.tracebacks:
-            self.tracebacks[traceback_id].insert(0, traceback_cell.type)
-        else:
-            self.tracebacks[traceback_id] = [traceback_cell.type]
         pre = traceback_cell.predecessors
-        if len(pre) > 1:
-            for cell in pre:
-                self.explore(cell, traceback_id)
-                traceback_id += 1
-        elif pre:
-            self.explore(pre[0], traceback_id)
+        if not pre:
+            current_traceback.insert(0, Operation.ROOT)
+            self.tracebacks.append(current_traceback.copy())
+            return
+        for op, cell in pre:
+            # for each new predecessor, create a new traceback.
+            tb = current_traceback.copy()
+            tb.insert(0, op)
+            self.explore(cell, current_traceback=tb)
 
     def split_traceback_set(self):
         """Function to kickoff exploration of a TracebackCell"""
         LOGGER.info("Kicking off exploration of Traceback.")
-        traceback_id = 0
-        self.explore(self.desired_traceback, traceback_id)
+        self.explore(self.desired_traceback, [])
         LOGGER.info("Done.")
 
     def generate_alignments(self, sequence1, sequence2):
@@ -221,49 +206,46 @@ class NeedlemanWunsch(object):
         :return:
         """
         alignments = []
-        for id, traceback in self.tracebacks.items():
+        for traceback in self.tracebacks:
             LOGGER.info("Length of tb: %d" % len(traceback))
-            alignment = [[], [], []]
+            LOGGER.info("tb: %s" % traceback)
+            seq1 = ""
+            seq2 = ""
             i = 0
             j = 0
+            print(len(sequence1), len(sequence2))
             for op in traceback:
-                if op == Operation.MATCH or op == Operation.MISMATCH or op == Operation.ROOT:
-                    alignment[0].append(sequence1[i])
-                    alignment[1].append(sequence2[j])
+                print(i, j)
+                if op == Operation.ROOT:
+                    i += 1
+                    j += 1
+                elif op == Operation.MATCH or op == Operation.MISMATCH:
+                    seq1 += sequence1[i]
+                    seq2 += sequence2[j]
                     i += 1
                     j += 1
                 elif op == Operation.DELETION:
-                    alignment[0].append(sequence1[i])
-                    alignment[1].append("-")
+                    seq1 += sequence1[i]
+                    seq2 += "-"
                     i += 1
                 elif op == Operation.INSERTION:
-                    alignment[0].append("-")
-                    alignment[1].append(sequence2[j])
+                    seq1 += "-"
+                    seq2 += sequence2[j]
                     j += 1
-                alignment[2].append(op)
-                if LOGGER.level == logging.DEBUG:
-                    LOGGER.debug("######################")
-                    LOGGER.debug("op: %s" % op)
-                    LOGGER.debug("i:%d" % i)
-                    LOGGER.debug("j:%d" % j)
-                    LOGGER.debug("".join(alignment[0]), "len: %d" % len(alignment[0]))
-                    LOGGER.debug("".join(alignment[1]), "len: %d" % len(alignment[1]))
-                    LOGGER.debug("######################")
-            alignments.append(
-                    Alignment(sequence1="".join(alignment[0][1:]), sequence2="".join(alignment[1][1:]),
-                              operations=alignment[2][1:],
-                              score=self.desired_traceback.score))
+            alignments.append(Alignment(sequence1=seq1, sequence2=seq2,
+                                        operations=[],
+                                        score=self.desired_traceback.score))
         self.alignments = alignments
+        return
 
     def run(self, seq1, seq2, complete_traceback=False):
         """
         >>> nw = NeedlemanWunsch()
-        >>> fasta = ["../data/test1.fn", "../data/test2.fn"]
+        >>> fasta = ["data/test1.fn", "data/test2.fn"]
         >>> sequences = parse_fasta_files(fasta)
-        >>> res = nw.run(sequences[0],sequences[1])
+        >>> res = nw.run(sequences[0],sequences[1], complete_traceback=True)
         >>> res
-        ('test1', Seq('€AAAC', SingleLetterAlphabet()), 'test2', Seq('€AAAG', SingleLetterAlphabet()), 10.0, (AAA-C, AAAG-, 10))
-
+        ('test1', Seq('€AACA', SingleLetterAlphabet()), 'test2', Seq('€AAAA', SingleLetterAlphabet()), 12.0, [(AACA, AAAA, 12)])
 
         :param fasta_files:
         :param complete_traceback:
@@ -277,10 +259,12 @@ class NeedlemanWunsch(object):
         self.split_traceback_set()
         self.generate_alignments(sequence1=seq1.seq, sequence2=seq2.seq)
 
-        if not complete_traceback:
-            res = self.alignments[0]
-        else:
-            res = self.alignments
+        res = None
+        if self.alignments:
+            if not complete_traceback:
+                res = [self.alignments[0]]
+            else:
+                res = self.alignments
 
         # return some dummy results
         return (seq1.id,
@@ -295,13 +279,15 @@ if __name__ == '__main__':
     blossum62 = MatrixInfo.blosum62
     # run Needleman-Wunsch with some parameters
     nw = NeedlemanWunsch()
-    fasta_files = ["../data/test3.fn"]
+    fasta_files = ["data/test3.fa"]
     sequences = parse_fasta_files(fasta_files)
     seq1 = sequences[0]
     seq2 = sequences[1]
-    res = nw.run(seq1, seq2, complete_traceback=True)
-    LOGGER.debug("scoring:", nw.scoring_matrix)
-    LOGGER.debug("Traceback-matrix:\n %s" % pformat(nw.traceback_matrix))
-    LOGGER.debug("Traceback:\n %s" % pformat(nw.desired_traceback))
-    LOGGER.debug("Done.")
+    res = nw.run(seq1, seq2)
+    if LOGGER.level == logging.DEBUG:
+        LOGGER.debug("scoring:", nw.scoring_matrix)
+        LOGGER.debug("Traceback-matrix:\n %s" % nw.traceback_matrix)
+        LOGGER.debug("Traceback:\n %s" % nw.desired_traceback)
+        LOGGER.debug("Done.")
     print(res)
+    exit(0)
