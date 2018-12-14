@@ -139,9 +139,9 @@ class NeedlemanWunsch(object):
                 # Top left cell
                 match = self.scoring_matrix[i - 1][j - 1] + score
                 # Top cell
-                delete = self.scoring_matrix[i - 1][j] + self.gap_penalty
+                delete = self.scoring_matrix[i][j - 1] + self.gap_penalty
                 # Left cell
-                insert = self.scoring_matrix[i][j - 1] + self.gap_penalty
+                insert = self.scoring_matrix[i - 1][j] + self.gap_penalty
                 # We calculate the maximum / minimum
                 # If we want similarity, we maximize. If we want distance we minimize
                 if self.scoring_type == ScoringType.DISTANCE:
@@ -154,9 +154,9 @@ class NeedlemanWunsch(object):
                 if optimum == match:
                     pre.append({"traceback_i": i - 1, "traceback_j": j - 1, "operation": Operation.MATCH})
                 if optimum == delete:
-                    pre.append({"traceback_i": i - 1, "traceback_j": j, "operation": Operation.DELETION})
+                    pre.append({"traceback_i": i, "traceback_j": j - 1, "operation": Operation.DELETION})
                 if optimum == insert:
-                    pre.append({"traceback_i": i, "traceback_j": j - 1, "operation": Operation.INSERTION})
+                    pre.append({"traceback_i": i - 1, "traceback_j": j, "operation": Operation.INSERTION})
                 cell = self.create_traceback_cell(predecessors=pre, score_i=i, score_j=j)
                 self.traceback_matrix[i][j] = cell
 
@@ -183,24 +183,22 @@ class NeedlemanWunsch(object):
         """
         Function to explore a TracebackCell recursively to obtain all tracebacks to the root.
         :param traceback_cell: TracebackCell from which you want to start backtracking.
-        :param traceback_id: ID of the current traceback you explore.
         :return: void, results are stored in member self.tracebacks (dictionary)
         """
         pre = traceback_cell.predecessors
         if not pre:
-            current_traceback.insert(0, Operation.ROOT)
-            self.tracebacks.append(current_traceback.copy())
-            return
+            return [current_traceback]
+
+        tracebacks = []
         for op, cell in pre:
             # for each new predecessor, create a new traceback.
-            tb = current_traceback.copy()
-            tb.insert(0, op)
-            self.explore(cell, current_traceback=tb)
+            tracebacks.extend(self.explore(cell, current_traceback=[op] + current_traceback))
+        return tracebacks
 
     def split_traceback_set(self):
         """Function to kickoff exploration of a TracebackCell"""
         LOGGER.info("Kicking off exploration of Traceback.")
-        self.explore(self.desired_traceback, [])
+        self.tracebacks = self.explore(self.desired_traceback, [])
         LOGGER.info("Done.")
 
     def generate_alignments(self, sequence1, sequence2):
@@ -219,21 +217,19 @@ class NeedlemanWunsch(object):
             i = 0
             j = 0
             for op in traceback:
-                if op == Operation.ROOT:
-                    pass
-                elif op == Operation.MATCH or op == Operation.MISMATCH:
+                if op == Operation.MATCH or op == Operation.MISMATCH:
                     seq1 += sequence1[i]
                     seq2 += sequence2[j]
                     i += 1
                     j += 1
                 elif op == Operation.DELETION:
-                    seq1 += sequence1[i]
-                    seq2 += "-"
-                    i += 1
-                elif op == Operation.INSERTION:
                     seq1 += "-"
                     seq2 += sequence2[j]
                     j += 1
+                elif op == Operation.INSERTION:
+                    seq1 += sequence1[i]
+                    seq2 += "-"
+                    i += 1
             alignments.append(Alignment(sequence1=seq1, sequence2=seq2,
                                         operations=[],
                                         score=self.desired_traceback.score))
@@ -247,12 +243,12 @@ class NeedlemanWunsch(object):
         :return:
 
         >>> nw = NeedlemanWunsch()
-        >>> fasta = ["data/test1.fn", "data/test2.fn"]
+        >>> fasta = ["data/test1.fa", "data/test2.fa"]
         >>> sequences = parse_fasta_files(fasta)
-        >>> res = nw.run(sequences[0],sequences[1], complete_traceback=True)
+        >>> res = nw.run(sequences[0],sequences[1], complete_traceback=False)
         >>> res
-        ('test1', Seq('AAAA', SingleLetterAlphabet()), 'test2', Seq('AAAA', SingleLetterAlphabet()), 16.0, \
-[Alignment: (AAAA, AAAA), Score: 16])
+        ('test1', Seq('AAAAA', SingleLetterAlphabet()), 'test2', Seq('AAAA', SingleLetterAlphabet()), 10.0, \
+[Alignment: (AAAAA, -AAAA), Score: 10])
         """
         self.calculate_scoring_matrix(seq1.seq, seq2.seq)
         self.desired_traceback = self.traceback_matrix[-1][-1]
@@ -276,7 +272,6 @@ class NeedlemanWunsch(object):
 
 
 if __name__ == '__main__':
-    blossum62 = MatrixInfo.blosum62
     # run Needleman-Wunsch with some parameters
     nw = NeedlemanWunsch()
     fasta_files = ["data/test3.fa"]

@@ -29,11 +29,11 @@ class Alignment(object):
 
 def parse_fasta_files(files):
     """
-    >>> files = ["../data/test1.fn", "../data/test2.fn"]
+    >>> files = [test1.fa,test1.faa/test2.fn"]
     >>> parse_fasta_files(files)
-    [SeqRecord(seq=Seq('MNSERSDVTLYQPFLDYAIAYMR', SingleLetterAlphabet()), id='test1', name='test1', description='
-    test1', dbxrefs=[]), SeqRecord(seq=Seq('MNSERSDVTLY', SingleLetterAlphabet()), id='test2', name='test2',
-    description='test2', dbxrefs=[])]
+    [SeqRecord(seq=Seq('AAAA', SingleLetterAlphabet()), id='test1', name='test1', description=' test1', dbxrefs=[]), \
+SeqRecord(seq=Seq('AAAA', SingleLetterAlphabet()), id='test2', name='test2', description='test2', dbxrefs=[])]
+
 
     :param files:
     :return:
