@@ -59,6 +59,10 @@ class Result(object):
         self.alignments = alignments
         self.score = score
 
+    def __repr__(self):
+        return "(SEQ1: %s, %s, SEQ2: %s, %s,\n ALIGNMENTS:\n%s,\n SCORE: %s)" % (
+            self.seq1_ID, self.seq1, self.seq2_ID, self.seq2, pformat(self.alignments), self.score)
+
 
 class NeedlemanWunsch(object):
     """
@@ -247,8 +251,8 @@ class NeedlemanWunsch(object):
             if not all and len(alignments) >= 1:
                 self.alignments = alignments
                 return
-            LOGGER.info("Length of tb: %d" % len(traceback))
-            LOGGER.info("tb: %s" % traceback)
+            LOGGER.debug("Length of tb: %d" % len(traceback))
+            LOGGER.debug("tb: %s" % traceback)
             seq1 = ""
             seq2 = ""
             i = 0
@@ -307,6 +311,26 @@ class NeedlemanWunsch(object):
                       score=self.desired_traceback.score,
                       alignments=res)
 
+    def pairwise_alignments(self, sequences):
+        results = []
+        LOGGER.info("You provided a total of %d sequences, performing pairwise aligments." % len(sequences))
+        combinations = list(itertools.combinations(sequences, 2))
+        total = len(combinations)
+        current = 1
+        for x, y in combinations:
+            LOGGER.info(" Alignment %d / %d (SEQ1: %s, SEQ2: %s)" % (current, total, x.seq, y.seq))
+            res = self.run(x, y, complete_traceback=args.all)
+            results.append(res)
+            LOGGER.info("SEQUENCE PAIR:\nSEQ1 ID:%s SEQ:%s\n"
+                        "SEQ2 ID:%s SEQ:%s" % (x.id, x.seq, y.id, y.seq))
+            LOGGER.info("SCORE: %s" % res.score)
+            LOGGER.info("PRINTING ALIGNMENT(S): ")
+            for alignment in res.alignments:
+                LOGGER.info("ALIGNMENT\n%s\n%s" % (alignment.sequence1, alignment.sequence2))
+                print()
+            current += 1
+        return results
+
 
 def parse_input():
     fasta_files = []
@@ -355,20 +379,8 @@ def run_needleman():
         # init the needleman
         nw = NeedlemanWunsch(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
                              similarity=(not args.distance))
-        LOGGER.info("You provided a total of %d sequences, performing pairwise aligment." % len(sequences))
-        combinations = list(itertools.combinations(sequences, 2))
-        total = len(combinations)
-        current = 1
-        for x, y in combinations:
-            LOGGER.info(" Alignment %d / %d (SEQ1: %s, SEQ2: %s)" % (current, total, x.seq, y.seq))
-            res = nw.run(x, y, complete_traceback=args.all)
-            LOGGER.info("SEQUENCE PAIR:\nSEQ1 ID:%s SEQ:%s\n"
-                        "SEQ2 ID:%s SEQ:%s" % (x.id, x.seq, y.id, y.seq))
-            LOGGER.info("SCORE: %s" % res.score)
-            LOGGER.info("PRINTING ALIGNMENT(S): ")
-            for alignment in res.alignments:
-                LOGGER.info("ALIGNMENT\n%s\n%s" % (alignment.sequence1, alignment.sequence2))
-                print()
+        results = nw.pairwise_alignments(sequences)
+        LOGGER.info("SUMMARY:\n%s" % pformat(results))
 
 
 def main():
