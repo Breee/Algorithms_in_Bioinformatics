@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="250eabea-01e5-4852-acae-2fd4a736713d" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/data/test2/test3.fa" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/test2/test4.fa" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/needleman_wunsch.py" beforeDir="false" afterPath="$PROJECT_DIR$/needleman_wunsch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_needleman_wunsch.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_needleman.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,37 +15,52 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctests_in_needleman_wunsch.coverage" NAME="Doctests in needleman_wunsch Coverage Results" MODIFIED="1544625796990" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_in_test_needleman_wunsch_py.coverage" NAME="Nosetests in test_needleman_wunsch.py Coverage Results" MODIFIED="1544786299345" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctests_in_utils.coverage" NAME="Doctests in utils Coverage Results" MODIFIED="1544794359529" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utility" />
+    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_in_test_needleman_wunsch_py.coverage" NAME="Nosetests in test_needleman.py Coverage Results" MODIFIED="1544801383288" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctests_in_NeedlemanWunsch__4_.coverage" NAME="Doctests in NeedlemanWunsch (4) Coverage Results" MODIFIED="1543330854931" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctests_in_utils__1_.coverage" NAME="Doctests in utils (1) Coverage Results" MODIFIED="1543409711098" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utility" />
-    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest_test_scoring_pam.coverage" NAME="Nosetests for test_needleman_wunsch.NeedlemanWunschTest.test_scoring_pam Coverage Results" MODIFIED="1544788709131" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest_test_scoring_pam.coverage" NAME="Nosetests for test_needleman_wunsch.NeedlemanWunschTest.test_scoring_pam Coverage Results" MODIFIED="1544801159657" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest_test_seq_1_2.coverage" NAME="Nosetests for test_needleman_wunsch.NeedlemanWunschTest.test_seq_1_2 Coverage Results" MODIFIED="1544784970638" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctests_in_NeedlemanWunsch__3_.coverage" NAME="Doctests in NeedlemanWunsch (3) Coverage Results" MODIFIED="1543330789489" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctest_NeedlemanWunsch_run.coverage" NAME="Doctest NeedlemanWunsch.run Coverage Results" MODIFIED="1544790459954" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctests_in_NeedlemanWunsch__2_.coverage" NAME="Doctests in NeedlemanWunsch (2) Coverage Results" MODIFIED="1543330384124" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctest_NeedlemanWunsch_calculate_similarity_matrix.coverage" NAME="Doctest NeedlemanWunsch.calculate_similarity_matrix Coverage Results" MODIFIED="1543417400029" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/needleman" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctest_parse_fasta_files.coverage" NAME="Doctest parse_fasta_files Coverage Results" MODIFIED="1544788835867" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utility" />
-    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$needleman_wunsch.coverage" NAME="needleman_wunsch Coverage Results" MODIFIED="1544795389970" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$needleman_wunsch.coverage" NAME="needleman_wunsch Coverage Results" MODIFIED="1544800677754" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctests_in_NeedlemanWunsch.coverage" NAME="Doctests in NeedlemanWunsch Coverage Results" MODIFIED="1543406875591" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_test_init.coverage" NAME="Nosetests for test_needleman_wunsch.test_init Coverage Results" MODIFIED="1544783421018" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctest_NeedlemanWunsch_calculate_scoring_matrix.coverage" NAME="Doctest NeedlemanWunsch.calculate_scoring_matrix Coverage Results" MODIFIED="1544784619692" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_test_seq_1_2.coverage" NAME="Nosetests for test_needleman_wunsch.test_seq_1_2 Coverage Results" MODIFIED="1544784758910" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_NeedlemanWunschTest_test_init.coverage" NAME="Nosetests for test_needleman.NeedlemanWunschTest.test_init Coverage Results" MODIFIED="1544801379411" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctests_in_NeedlemanWunsch__1_.coverage" NAME="Doctests in NeedlemanWunsch (1) Coverage Results" MODIFIED="1543330332446" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Doctest_matches_file_filter.coverage" NAME="Doctest matches_file_filter Coverage Results" MODIFIED="1544792242189" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/utility" />
-    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest.coverage" NAME="Nosetests for test_needleman_wunsch.NeedlemanWunschTest Coverage Results" MODIFIED="1544784978423" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest_test_init.coverage" NAME="Nosetests for test_needleman_wunsch.NeedlemanWunschTest.test_init Coverage Results" MODIFIED="1544800705689" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest.coverage" NAME="Nosetests for test_needleman_wunsch.NeedlemanWunschTest Coverage Results" MODIFIED="1544801163973" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest_test_scoring_blossum.coverage" NAME="Nosetests for test_needleman_wunsch.NeedlemanWunschTest.test_scoring_blossum Coverage Results" MODIFIED="1544801226714" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/Algorithms_in_Bioinformatics$Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest_test_scoring_1.coverage" NAME="Nosetests for test_needleman_wunsch.NeedlemanWunschTest.test_scoring_1 Coverage Results" MODIFIED="1544786367583" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/needleman_wunsch.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="547">
-              <caret line="61" column="23" lean-forward="true" selection-start-line="61" selection-start-column="23" selection-end-line="61" selection-end-column="23" />
+            <state relative-caret-position="475">
+              <caret line="380" column="53" lean-forward="true" selection-start-line="380" selection-start-column="53" selection-end-line="380" selection-end-column="53" />
               <folding>
                 <element signature="e#0#26#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/README.md">
+          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+            <state split_layout="SPLIT">
+              <first_editor relative-caret-position="234">
+                <caret line="13" column="31" lean-forward="true" selection-start-line="13" selection-start-column="31" selection-end-line="13" selection-end-column="31" />
+              </first_editor>
+              <second_editor />
             </state>
           </provider>
         </entry>
@@ -78,15 +93,6 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/venv/lib/python3.6/site-packages/Bio/SeqRecord.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="249">
-              <caret line="318" selection-start-line="318" selection-end-line="318" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/data/test1.fa">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="18">
@@ -114,10 +120,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tests/test_needleman_wunsch.py">
+        <entry file="file://$PROJECT_DIR$/tests/test_needleman.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="115">
-              <caret line="54" column="62" lean-forward="true" selection-start-line="54" selection-start-column="62" selection-end-line="54" selection-end-column="62" />
+            <state relative-caret-position="259">
+              <caret line="74" column="51" lean-forward="true" selection-start-line="74" selection-start-column="51" selection-end-line="75" selection-end-column="18" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -166,13 +172,14 @@
         <option value="$PROJECT_DIR$/data/test2.fn" />
         <option value="$PROJECT_DIR$/data/test3.fn" />
         <option value="$PROJECT_DIR$/requirements.txt" />
-        <option value="$PROJECT_DIR$/tests/test_needleman_wunsch.py" />
         <option value="$PROJECT_DIR$/data/test1.fn" />
         <option value="$PROJECT_DIR$/data/test1.fa" />
         <option value="$PROJECT_DIR$/logger/log.py" />
         <option value="$PROJECT_DIR$/utility/utils.py" />
         <option value="$PROJECT_DIR$/data/test2/test2.fa" />
+        <option value="$PROJECT_DIR$/tests/test_needleman_wunsch.py" />
         <option value="$PROJECT_DIR$/needleman_wunsch.py" />
+        <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
@@ -263,112 +270,94 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.needleman_wunsch">
-    <configuration name="needleman_wunsch" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python tests.Nosetests in test_needleman.py">
+    <configuration name="Nosetests for test_needleman.NeedlemanWunschTest.test_init" type="tests" factoryName="Nosetests" temporary="true" nameIsGenerated="true">
       <module name="Algorithms_in_Bioinformatics" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/needleman_wunsch.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
+      <option name="_new_regexPattern" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_needleman.NeedlemanWunschTest.test_init&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Doctest NeedlemanWunsch.run" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
+    <configuration name="Nosetests for tests.test_needleman.NeedlemanWunschTest" type="tests" factoryName="Nosetests" temporary="true" nameIsGenerated="true">
       <module name="Algorithms_in_Bioinformatics" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/needleman_wunsch.py" />
-      <option name="CLASS_NAME" value="NeedlemanWunsch" />
-      <option name="METHOD_NAME" value="run" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_METHOD" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
+      <option name="_new_regexPattern" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;tests.test_needleman.NeedlemanWunschTest&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Doctest matches_file_filter" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
+    <configuration name="Nosetests for tests.test_needleman.NeedlemanWunschTest.test_scoring_blossum" type="tests" factoryName="Nosetests" temporary="true" nameIsGenerated="true">
       <module name="Algorithms_in_Bioinformatics" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utility" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utility/utils.py" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="matches_file_filter" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_FUNCTION" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
+      <option name="_new_regexPattern" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;tests.test_needleman.NeedlemanWunschTest.test_scoring_blossum&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Doctest parse_fasta_files" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
+    <configuration name="Nosetests for tests.test_needleman.NeedlemanWunschTest.test_scoring_pam" type="tests" factoryName="Nosetests" temporary="true" nameIsGenerated="true">
       <module name="Algorithms_in_Bioinformatics" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utility" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utility/utils.py" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="parse_fasta_files" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_FUNCTION" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
+      <option name="_new_regexPattern" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;tests.test_needleman.NeedlemanWunschTest.test_scoring_pam&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Doctests in utils" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
+    <configuration name="Nosetests in test_needleman.py" type="tests" factoryName="Nosetests" temporary="true" nameIsGenerated="true">
       <module name="Algorithms_in_Bioinformatics" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utility" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utility/utils.py" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
+      <option name="_new_regexPattern" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/test_needleman.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.needleman_wunsch" />
-        <item itemvalue="Python tests.Doctests in utils" />
-        <item itemvalue="Python tests.Doctest matches_file_filter" />
-        <item itemvalue="Python tests.Doctest NeedlemanWunsch.run" />
-        <item itemvalue="Python tests.Doctest parse_fasta_files" />
+        <item itemvalue="Python tests.Nosetests in test_needleman.py" />
+        <item itemvalue="Python tests.Nosetests for test_needleman.NeedlemanWunschTest.test_init" />
+        <item itemvalue="Python tests.Nosetests for tests.test_needleman.NeedlemanWunschTest.test_scoring_blossum" />
+        <item itemvalue="Python tests.Nosetests for tests.test_needleman.NeedlemanWunschTest" />
+        <item itemvalue="Python tests.Nosetests for tests.test_needleman.NeedlemanWunschTest.test_scoring_pam" />
       </list>
     </recent_temporary>
   </component>
@@ -394,44 +383,44 @@
       <workItem from="1544660348319" duration="3555000" />
       <workItem from="1544698757130" duration="5527000" />
       <workItem from="1544722842829" duration="6266000" />
-      <workItem from="1544780337660" duration="18662000" />
+      <workItem from="1544780337660" duration="19992000" />
     </task>
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Doctest_NeedlemanWunsch_run - 2018.12.14 at 13h 24m 19s.xml">
-      <configuration name="Doctest NeedlemanWunsch.run" configurationId="tests" />
+    <history-entry file="Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest - 2018.12.14 at 16h 21m 17s.xml">
+      <configuration name="Nosetests for test_needleman_wunsch.NeedlemanWunschTest" configurationId="tests" />
     </history-entry>
-    <history-entry file="Doctest_NeedlemanWunsch_run - 2018.12.14 at 13h 25m 00s.xml">
-      <configuration name="Doctest NeedlemanWunsch.run" configurationId="tests" />
+    <history-entry file="Nosetests_in_test_needleman_wunsch_py - 2018.12.14 at 16h 23m 38s.xml">
+      <configuration name="Nosetests in test_needleman_wunsch.py" configurationId="tests" />
     </history-entry>
-    <history-entry file="Doctest_NeedlemanWunsch_run - 2018.12.14 at 13h 26m 09s.xml">
-      <configuration name="Doctest NeedlemanWunsch.run" configurationId="tests" />
+    <history-entry file="Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest - 2018.12.14 at 16h 24m 31s.xml">
+      <configuration name="Nosetests for test_needleman_wunsch.NeedlemanWunschTest" configurationId="tests" />
     </history-entry>
-    <history-entry file="Doctest_NeedlemanWunsch_run - 2018.12.14 at 13h 26m 30s.xml">
-      <configuration name="Doctest NeedlemanWunsch.run" configurationId="tests" />
+    <history-entry file="Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest_test_scoring_blossum - 2018.12.14 at 16h 25m 49s.xml">
+      <configuration name="Nosetests for test_needleman_wunsch.NeedlemanWunschTest.test_scoring_blossum" configurationId="tests" />
     </history-entry>
-    <history-entry file="Doctest_NeedlemanWunsch_run - 2018.12.14 at 13h 26m 56s.xml">
-      <configuration name="Doctest NeedlemanWunsch.run" configurationId="tests" />
+    <history-entry file="Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest_test_scoring_pam - 2018.12.14 at 16h 26m 00s.xml">
+      <configuration name="Nosetests for test_needleman_wunsch.NeedlemanWunschTest.test_scoring_pam" configurationId="tests" />
     </history-entry>
-    <history-entry file="Doctest_NeedlemanWunsch_run - 2018.12.14 at 13h 27m 16s.xml">
-      <configuration name="Doctest NeedlemanWunsch.run" configurationId="tests" />
+    <history-entry file="Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest - 2018.12.14 at 16h 26m 04s.xml">
+      <configuration name="Nosetests for test_needleman_wunsch.NeedlemanWunschTest" configurationId="tests" />
     </history-entry>
-    <history-entry file="Doctest_NeedlemanWunsch_run - 2018.12.14 at 13h 27m 23s.xml">
-      <configuration name="Doctest NeedlemanWunsch.run" configurationId="tests" />
+    <history-entry file="Nosetests_for_test_needleman_wunsch_NeedlemanWunschTest_test_scoring_blossum - 2018.12.14 at 16h 27m 07s.xml">
+      <configuration name="Nosetests for test_needleman_wunsch.NeedlemanWunschTest.test_scoring_blossum" configurationId="tests" />
     </history-entry>
-    <history-entry file="Doctest_NeedlemanWunsch_run - 2018.12.14 at 13h 27m 40s.xml">
-      <configuration name="Doctest NeedlemanWunsch.run" configurationId="tests" />
+    <history-entry file="Nosetests_for_test_needleman_NeedlemanWunschTest_test_init - 2018.12.14 at 16h 28m 07s.xml">
+      <configuration name="Nosetests for test_needleman.NeedlemanWunschTest.test_init" configurationId="tests" />
     </history-entry>
-    <history-entry file="Doctest_matches_file_filter - 2018.12.14 at 13h 57m 22s.xml">
-      <configuration name="Doctest matches_file_filter" configurationId="tests" />
+    <history-entry file="Nosetests_for_test_needleman_NeedlemanWunschTest_test_init - 2018.12.14 at 16h 29m 39s.xml">
+      <configuration name="Nosetests for test_needleman.NeedlemanWunschTest.test_init" configurationId="tests" />
     </history-entry>
-    <history-entry file="Doctests_in_utils - 2018.12.14 at 14h 32m 39s.xml">
-      <configuration name="Doctests in utils" configurationId="tests" />
+    <history-entry file="Nosetests_in_test_needleman_py - 2018.12.14 at 16h 29m 43s.xml">
+      <configuration name="Nosetests in test_needleman.py" configurationId="tests" />
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="104480000" />
+    <option name="totallyTimeSpent" value="105810000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1987" y="25" width="2493" height="1415" extended-state="6" />
@@ -637,16 +626,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test_needleman_wunsch.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="115">
-          <caret line="54" column="62" lean-forward="true" selection-start-line="54" selection-start-column="62" selection-end-line="54" selection-end-column="62" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/utility/utils.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="745">
@@ -661,13 +640,33 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tests/test_needleman.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="259">
+          <caret line="74" column="51" lean-forward="true" selection-start-line="74" selection-start-column="51" selection-end-line="75" selection-end-column="18" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/needleman_wunsch.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="547">
-          <caret line="61" column="23" lean-forward="true" selection-start-line="61" selection-start-column="23" selection-end-line="61" selection-end-column="23" />
+        <state relative-caret-position="475">
+          <caret line="380" column="53" lean-forward="true" selection-start-line="380" selection-start-column="53" selection-end-line="380" selection-end-column="53" />
           <folding>
             <element signature="e#0#26#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="234">
+            <caret line="13" column="31" lean-forward="true" selection-start-line="13" selection-start-column="31" selection-end-line="13" selection-end-column="31" />
+          </first_editor>
+          <second_editor />
         </state>
       </provider>
     </entry>

@@ -13,24 +13,6 @@ import argparse
 import os
 import itertools
 
-# command line arguments.
-parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--input', type=str, required=True, default='',
-                    nargs='+',
-                    help='A file, a directory or multiple directories. directories are processed recursively.')
-parser.add_argument('--file-filter', type=str, default='',
-                    help='A regex to define a filter, which will be applied to the files parsed.')
-parser.add_argument('-a', '--all', action='store_true', default=False,
-                    help='Return ALL optimal alignments.')
-parser.add_argument('-g', '--gap_penalty', type=float, default=6.0,
-                    help='Gap penalty, float value. default is 6.0')
-parser.add_argument('-s', '--substitution_matrix', type=str, default="BLOSSUM",
-                    help='Substitution Matrix (BLOSSUM | PAM) default is BLOSSUM')
-parser.add_argument('-d', '--distance', action='store_true', default=False,
-                    help='Calculate DISTANCE instead of SIMILARITY')
-
-args = parser.parse_args()
-
 
 class TracebackCell(object):
     """
@@ -390,4 +372,23 @@ def main():
 
 
 if __name__ == '__main__':
+    # command line arguments.
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', type=str, required=True, default='',
+                        nargs='+',
+                        help='A file, a directory or multiple directories. directories are processed recursively.')
+    parser.add_argument('--file-filter', type=str, default='',
+                        help='A regex to define a filter, which will be applied to the files parsed.')
+    parser.add_argument('-a', '--all', action='store_true', default=False,
+                        help='Return ALL optimal alignments.')
+    parser.add_argument('-g', '--gap_penalty', type=float, default=6.0,
+                        help='Gap penalty, float value. default is 6.0')
+    parser.add_argument('-s', '--substitution_matrix', type=str, default="BLOSSUM",
+                        help='Substitution Matrix (BLOSSUM | PAM) default is BLOSSUM')
+    parser.add_argument('-d', '--distance', action='store_true', default=False,
+                        help='Calculate DISTANCE instead of SIMILARITY')
+
+    args = parser.parse_args()
     main()
+else:
+    pass

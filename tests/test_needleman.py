@@ -92,3 +92,9 @@ class NeedlemanWunschTest(unittest.TestCase):
         print("RESULT:\n %s" % pprint.pformat(nw.scoring_matrix))
         self.assertAlmostEqual(nw.scoring_matrix[-1][-1], 31.0)
         print("############# FINISH ##############")
+
+
+if __name__ == '__main__':
+    suite = unittest.TestSuite()
+    suite.addTest(NeedlemanWunschTest())
+    unittest.TextTestRunner().run(suite)
