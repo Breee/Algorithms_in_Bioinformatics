@@ -22,6 +22,12 @@ parser.add_argument('--file-filter', type=str, default='',
                     help='A regex to define a filter, which will be applied to the files parsed.')
 parser.add_argument('-a', '--all', action='store_true', default=False,
                     help='Return ALL optimal alignments.')
+parser.add_argument('-g', '--gap_penalty', type=float, default=6.0,
+                    help='Gap penalty, float value. default is 6.0')
+parser.add_argument('-s', '--substitution_matrix', type=str, default="BLOSSUM",
+                    help='Substitution Matrix (BLOSSUM | PAM) default is BLOSSUM')
+parser.add_argument('-d', '--distance', action='store_true', default=False,
+                    help='Calculate DISTANCE instead of SIMILARITY')
 
 args = parser.parse_args()
 
@@ -83,6 +89,7 @@ class NeedlemanWunsch(object):
         else:
             self.scoring_type = ScoringType.DISTANCE
             self.gap_penalty = abs(gap_penalty)
+            raise NotImplementedError("DISTANCE is not implemented yet.")
         self.alignments = []
         LOGGER.info("Scoring-Type: %s" % self.scoring_type)
         LOGGER.debug("Substitution Matrix:\n %s" % pformat(self.substitution_matrix))
@@ -329,6 +336,14 @@ def process_program_arguments():
                 "Error, provide input file/files/directory/directories using -i / --input. -h/--help for all "
                 "arguments.")
         exit(1)
+    if args.substitution_matrix != "PAM" and args.substitution_matrix != "BLOSSUM":
+        LOGGER.critical(
+                "UNKNOWN parameter for substitution matrix. Choose BLOSSUM or PAM, falling back to BLOSSUM")
+        args.substitution_matrix = MatrixInfo.blosum62
+    elif args.substitution_matrix == "BLOSSUM":
+        args.substitution_matrix = MatrixInfo.blosum62
+    elif args.substitution_matrix == "PAM":
+        args.substitution_matrix = MatrixInfo.pam250
 
 
 def run_needleman():
@@ -338,7 +353,8 @@ def run_needleman():
         exit(1)
     elif len(sequences) >= 2:
         # init the needleman
-        nw = NeedlemanWunsch()
+        nw = NeedlemanWunsch(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
+                             similarity=(not args.distance))
         LOGGER.info("You provided a total of %d sequences, performing pairwise aligment." % len(sequences))
         combinations = list(itertools.combinations(sequences, 2))
         total = len(combinations)
