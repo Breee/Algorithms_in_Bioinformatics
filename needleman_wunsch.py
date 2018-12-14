@@ -71,8 +71,8 @@ class NeedlemanWunsch(object):
         """
         LOGGER.info("Initializing Scoring Matrix.")
         # initialize scoring matrix with all zeros
-        self.scoring_matrix = numpy.zeros(shape=(len(seq1), len(seq2)))
-        self.traceback_matrix = numpy.zeros(shape=(len(seq1), len(seq2)), dtype=object)
+        self.scoring_matrix = numpy.zeros(shape=(len(seq1) + 1, len(seq2) + 1))
+        self.traceback_matrix = numpy.zeros(shape=(len(seq1) + 1, len(seq2) + 1), dtype=object)
         self.scoring_matrix[0][0] = 0
         self.traceback_matrix[0][0] = TracebackCell(predecessors=[], score=0)
         # iterate top row and initialize values
@@ -88,8 +88,8 @@ class NeedlemanWunsch(object):
             self.traceback_matrix.T[0][i] = TracebackCell(
                     predecessors=[(Operation.INSERTION, self.traceback_matrix.T[0][i - 1])], score=score)
         LOGGER.info("Done.")
-        assert self.scoring_matrix.shape == (len(seq1), len(seq2))
-        assert self.traceback_matrix.shape == (len(seq1), len(seq2))
+        assert self.scoring_matrix.shape == (len(seq1) + 1, len(seq2) + 1)
+        assert self.traceback_matrix.shape == (len(seq1) + 1, len(seq2) + 1)
 
     def score(self, letter1, letter2):
         LOGGER.debug("Calculating score S(%s,%s)" % (letter1, letter2))
@@ -109,27 +109,31 @@ class NeedlemanWunsch(object):
 
     def calculate_scoring_matrix(self, seq1, seq2):
         """
-        >>> nw = NeedlemanWunsch()
-        >>> nw.calculate_scoring_matrix("AATC","AACT")
-        >>> nw.scoring_matrix
-        array([[  0.,  -6., -12., -18.],
-               [ -6.,   4.,  -2.,  -8.],
-               [-12.,  -2.,   3.,   3.],
-               [-18.,  -8.,   7.,   2.]])
-
         Function which calculates the scoring matrix using needleman-wunsch.
         :param seq1: First sequence.
         :param seq2: Second sequence
         :return: void
+
+        >>> nw = NeedlemanWunsch()
+        >>> nw.calculate_scoring_matrix("AATC","AACT")
+        >>> nw.scoring_matrix
+        array([[  0.,  -6., -12., -18., -24.],
+               [ -6.,   4.,  -2.,  -8., -14.],
+               [-12.,  -2.,   8.,   2.,  -4.],
+               [-18.,  -8.,   2.,   7.,   7.],
+               [-24., -14.,  -4.,  11.,   6.]])
+        >>> nw.traceback_matrix[-1][-1]
+        ([(<Operation.MATCH: (1,)>, ([(<Operation.MATCH: (1,)>, ([(<Operation.MATCH: (1,)>, ([(<Operation.MATCH: (1,\
+)>, ([], 0))], 4.0))], 8.0))], 7.0))], 6.0)
         """
         # initialize scoring matrix.
         self.init_scoring_matrix(seq1=seq1, seq2=seq2)
         LOGGER.debug("Calculating Score Matrix.")
         # next we want to fill the scoring matrix.
-        for i in range(1, len(seq1)):
-            for j in range(1, len(seq2)):
-                letter1 = seq1[i]
-                letter2 = seq2[j]
+        for i in range(1, len(seq1) + 1):
+            for j in range(1, len(seq2) + 1):
+                letter1 = seq1[i - 1]
+                letter2 = seq2[j - 1]
                 # we calculate the score of the letters in the sequences (Match/Mismatch)
                 score = self.score(letter1, letter2)
                 # Top left cell
@@ -160,7 +164,8 @@ class NeedlemanWunsch(object):
         """
         Helper function to create and update TracebackCells
         :param cell: TracebackCell.
-        :param predecessors: predecessor states. e.g. [{"traceback_i": i - 1, "traceback_j": j, "operation": Operation.DELETION}]
+        :param predecessors: predecessor states. e.g. [{"traceback_i": i - 1, "traceback_j": j, "operation":
+        Operation.DELETION}]
         :param score_i: position i in scoring matrix.
         :param score_j: positon j in scoring matrix.
         :return:
@@ -213,12 +218,9 @@ class NeedlemanWunsch(object):
             seq2 = ""
             i = 0
             j = 0
-            print(len(sequence1), len(sequence2))
             for op in traceback:
-                print(i, j)
                 if op == Operation.ROOT:
-                    i += 1
-                    j += 1
+                    pass
                 elif op == Operation.MATCH or op == Operation.MISMATCH:
                     seq1 += sequence1[i]
                     seq2 += sequence2[j]
@@ -240,22 +242,20 @@ class NeedlemanWunsch(object):
 
     def run(self, seq1, seq2, complete_traceback=False):
         """
+        :param fasta_files:
+        :param complete_traceback:
+        :return:
+
         >>> nw = NeedlemanWunsch()
         >>> fasta = ["data/test1.fn", "data/test2.fn"]
         >>> sequences = parse_fasta_files(fasta)
         >>> res = nw.run(sequences[0],sequences[1], complete_traceback=True)
         >>> res
-        ('test1', Seq('€AACA', SingleLetterAlphabet()), 'test2', Seq('€AAAA', SingleLetterAlphabet()), 12.0, [(AACA, AAAA, 12)])
-
-        :param fasta_files:
-        :param complete_traceback:
-        :return:
+        ('test1', Seq('AAAA', SingleLetterAlphabet()), 'test2', Seq('AAAA', SingleLetterAlphabet()), 16.0, \
+[Alignment: (AAAA, AAAA), Score: 16])
         """
-        # add character wih represents the empty word
-        seq1.seq = "€" + seq1.seq
-        seq2.seq = "€" + seq2.seq
         self.calculate_scoring_matrix(seq1.seq, seq2.seq)
-        self.desired_traceback = self.traceback_matrix[len(seq1.seq) - 1][len(seq2.seq) - 1]
+        self.desired_traceback = self.traceback_matrix[-1][-1]
         self.split_traceback_set()
         self.generate_alignments(sequence1=seq1.seq, sequence2=seq2.seq)
 

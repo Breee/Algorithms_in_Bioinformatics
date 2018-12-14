@@ -22,7 +22,6 @@ class Alignment(object):
         self.sequence2 = sequence2
         self.operations = operations
         self.score = score
-        print(self)
 
     def __repr__(self):
         return "Alignment: (%s, %s), Score: %d" % (self.sequence1, self.sequence2, self.score)
@@ -32,7 +31,9 @@ def parse_fasta_files(files):
     """
     >>> files = ["../data/test1.fn", "../data/test2.fn"]
     >>> parse_fasta_files(files)
-    [SeqRecord(seq=Seq('MNSERSDVTLYQPFLDYAIAYMR', SingleLetterAlphabet()), id='test1', name='test1', description=' test1', dbxrefs=[]), SeqRecord(seq=Seq('MNSERSDVTLY', SingleLetterAlphabet()), id='test2', name='test2', description='test2', dbxrefs=[])]
+    [SeqRecord(seq=Seq('MNSERSDVTLYQPFLDYAIAYMR', SingleLetterAlphabet()), id='test1', name='test1', description='
+    test1', dbxrefs=[]), SeqRecord(seq=Seq('MNSERSDVTLY', SingleLetterAlphabet()), id='test2', name='test2',
+    description='test2', dbxrefs=[])]
 
     :param files:
     :return:
