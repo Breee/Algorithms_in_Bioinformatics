@@ -15,6 +15,8 @@ pip install -r requirements.txt
 ```
 
 # Needleman Wunsch
+We implemented a commandline tool alongside the needleman-wunsch algorithm.
+Of course you do not have to use it, you can just import the classes you need into your project.
 
 call
 
