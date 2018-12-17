@@ -34,6 +34,10 @@ class TracebackCell(object):
 
 
 class Result(object):
+    """
+    Represents a result tuple.
+    """
+
     def __init__(self, seq1_ID, seq1, seq2_ID, seq2, alignments, score):
         self.seq1_ID = seq1_ID
         self.seq2_ID = seq2_ID
@@ -118,36 +122,51 @@ class Gotoh(object):
         self.scoring_matrix_Q = numpy.zeros(shape=(len(seq1) + 1, len(seq2) + 1))
         self.scoring_matrix_P = numpy.zeros(shape=(len(seq1) + 1, len(seq2) + 1))
         self.traceback_matrix = numpy.zeros(shape=(len(seq1) + 1, len(seq2) + 1), dtype=object)
+        # next, set initial values according to gotohs algorithm.
         self.scoring_matrix_D[0][0] = 0
+        # Q[0][0] is never used, set to it to -inf
         self.scoring_matrix_Q[0][0] = -math.inf
+        # P[0][0] is never used, set to it to -inf
         self.scoring_matrix_P[0][0] = -math.inf
+        # TB[0][0] is the root, thus no predecessors.
         self.traceback_matrix[0][0] = TracebackCell(predecessors=[], score=0)
-        # iterate top row and initialize values
-        for i in range(1, len(self.scoring_matrix_D[0])):
-            score = self.gap_cost(i)
-            self.scoring_matrix_D[0][i] = self.gap_cost(i)
-            self.scoring_matrix_Q[0][i] = -math.inf
-            self.scoring_matrix_P[0][i] = -math.inf
-            self.traceback_matrix[0][i] = TracebackCell(
-                    predecessors=[(Operation.DELETION, self.traceback_matrix[0][i - 1])], score=score)
+        # next, iterate top row and initialize values
+        for j in range(1, len(self.scoring_matrix_D[0])):
+            score = self.gap_cost(j)
+            self.scoring_matrix_D[0][j] = self.gap_cost(j)
+            # P[0][j] and Q[0][j] is never used, set to it to -inf
+            self.scoring_matrix_Q[0][j] = -math.inf
+            self.scoring_matrix_P[0][j] = -math.inf
+            self.traceback_matrix[0][j] = TracebackCell(
+                    predecessors=[(Operation.DELETION, self.traceback_matrix[0][j - 1])], score=score)
             # iterate first column and initialize values
         for i in range(1, len(self.scoring_matrix_D.T[0])):
             score = self.gap_cost(i)
-            self.scoring_matrix_D.T[0][i] = self.gap_cost(i)
-            self.scoring_matrix_Q.T[0][i] = -math.inf
-            self.scoring_matrix_P.T[0][i] = -math.inf
-            self.traceback_matrix.T[0][i] = TracebackCell(
-                    predecessors=[(Operation.INSERTION, self.traceback_matrix.T[0][i - 1])], score=score)
+            self.scoring_matrix_D[i][0] = self.gap_cost(i)
+            # P[i][0] and Q[i][0] is never used, set to it to -inf
+            self.scoring_matrix_Q[i][0] = -math.inf
+            self.scoring_matrix_P[i][0] = -math.inf
+            self.traceback_matrix[i][0] = TracebackCell(
+                    predecessors=[(Operation.INSERTION, self.traceback_matrix[i - 1][0])], score=score)
         LOGGER.info("Done.")
-        assert self.scoring_matrix_D.shape == (len(seq1) + 1, len(seq2) + 1)
-        assert self.scoring_matrix_Q.shape == (len(seq1) + 1, len(seq2) + 1)
-        assert self.scoring_matrix_P.shape == (len(seq1) + 1, len(seq2) + 1)
-        assert self.traceback_matrix.shape == (len(seq1) + 1, len(seq2) + 1)
 
     def gap_cost(self, length):
+        """
+        affine gap cost function.
+        :param length:
+        :return: cost for gap of size :length:
+        """
         return self.gap_penalty + (self.gap_extend * length)
 
     def score(self, letter1, letter2):
+        """
+        Scoring function, takes the score s(letter1,letter2) from self.substitution_matrix, if it is not None.
+        If the self.substitution_matrix is None, then self.match_scoring + self.mismatch_scoring are used.
+
+        :param letter1:
+        :param letter2:
+        :return: numeric score s(letter1,letter2)
+        """
         LOGGER.debug("Calculating score S(%s,%s)" % (letter1, letter2))
         if self.substitution_matrix:
             pair = (letter1, letter2)
@@ -165,10 +184,22 @@ class Gotoh(object):
 
     def calculate_scoring_matrix(self, seq1, seq2):
         """
-        Function which calculates the scoring matrix using needleman-wunsch.
+        Function which calculates the scoring matrix using gotoh.
+        Using the following recursion:
+
+        1. P[i][j] = max(D[i-1][j] + g(1), P[i-1][j] + \beta)
+        2. Q[i][j] = max(D[i][j-1] + g(1), Q[i][j-1] + \beta)
+        3. D[i][j] = max(D[i-1][j-1] + score(x,y), Q[i][j], P[i][j])
+
+        where:
+        - score(x,y) is a scoring function,
+        - \beta is the cost of a gap_extension
+        - g(k) is the gap cost for a gap of size k
+
         :param seq1: First sequence.
         :param seq2: Second sequence
-        :return: void
+        :return: void. the function fills self.scoring_matrix_D, self.scoring_matrix_P, self.scoring_matrix_Q,
+        self.traceback_matrix
 
         >>> got = Gotoh(match_scoring=1, mismatch_scoring=-1, substitution_matrix=None)
         >>> got.calculate_scoring_matrix("AATC","AACT")
@@ -228,13 +259,14 @@ class Gotoh(object):
 
     def create_traceback_cell(self, predecessors, score_i, score_j):
         """
-        Helper function to create and update TracebackCells
+        Helper function to create and TracebackCells and fill them with predecessors.
+
         :param cell: TracebackCell.
         :param predecessors: predecessor states. e.g. [{"traceback_i": i - 1, "traceback_j": j, "operation":
         Operation.DELETION}]
         :param score_i: position i in scoring matrix.
         :param score_j: positon j in scoring matrix.
-        :return:
+        :return: TracebackCell object.
         """
 
         tb_cell = TracebackCell(predecessors=[],
