@@ -53,10 +53,10 @@ class Result(object):
 
 class Gotoh(object):
     """
-    Class which implements the needleman-wunsch algorithm.
+    Class which implements the gotoh algorithm.
     """
 
-    def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=-6, gap_extend=-3,
+    def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=11, gap_extend=1,
                  substitution_matrix=MatrixInfo.blosum62,
                  similarity=True):
         LOGGER.info("Initialzing needleman-wunsch.")
@@ -79,8 +79,8 @@ class Gotoh(object):
 
         if similarity:
             self.scoring_type = ScoringType.SIMILARITY
-            self.gap_penalty = gap_penalty
-            self.gap_extend = gap_extend
+            self.gap_penalty = abs(gap_penalty) * (-1)
+            self.gap_extend = abs(gap_extend) * (-1)
         else:
             self.scoring_type = ScoringType.DISTANCE
             self.gap_penalty = abs(gap_penalty)
@@ -138,7 +138,7 @@ class Gotoh(object):
             self.scoring_matrix_Q[0][j] = -math.inf
             self.scoring_matrix_P[0][j] = -math.inf
             self.traceback_matrix[0][j] = TracebackCell(
-                    predecessors=[(Operation.DELETION, self.traceback_matrix[0][j - 1])], score=score)
+                    predecessors=[(Operation.INSERTION, self.traceback_matrix[0][j - 1])], score=score)
             # iterate first column and initialize values
         for i in range(1, len(self.scoring_matrix_D.T[0])):
             score = self.gap_cost(i)
@@ -147,7 +147,7 @@ class Gotoh(object):
             self.scoring_matrix_Q[i][0] = -math.inf
             self.scoring_matrix_P[i][0] = -math.inf
             self.traceback_matrix[i][0] = TracebackCell(
-                    predecessors=[(Operation.INSERTION, self.traceback_matrix[i - 1][0])], score=score)
+                    predecessors=[(Operation.DELETION, self.traceback_matrix[i - 1][0])], score=score)
         LOGGER.info("Done.")
 
     def gap_cost(self, length):
@@ -312,8 +312,8 @@ class Gotoh(object):
             if not all and len(alignments) >= 1:
                 self.alignments = alignments
                 return
-            LOGGER.debug("Length of tb: %d" % len(traceback))
-            LOGGER.debug("tb: %s" % traceback)
+            LOGGER.info("Length of tb: %d" % len(traceback))
+            LOGGER.info("tb: %s" % traceback)
             seq1 = ""
             seq2 = ""
             i = 0
@@ -423,7 +423,8 @@ def process_program_arguments():
                 "Error, provide input file/files/directory/directories using -i / --input. -h/--help for all "
                 "arguments.")
         exit(1)
-    if args.substitution_matrix != "PAM" and args.substitution_matrix != "BLOSSUM":
+    if args.substitution_matrix != "PAM" and args.substitution_matrix != "BLOSSUM" and args.substitution_matrix != \
+            "NONE":
         LOGGER.critical(
                 "UNKNOWN parameter for substitution matrix. Choose BLOSSUM or PAM, falling back to BLOSSUM")
         args.substitution_matrix = MatrixInfo.blosum62
@@ -431,6 +432,8 @@ def process_program_arguments():
         args.substitution_matrix = MatrixInfo.blosum62
     elif args.substitution_matrix == "PAM":
         args.substitution_matrix = MatrixInfo.pam250
+    elif args.substitution_matrix == "NONE":
+        args.substitution_matrix = None
 
 
 def run_gotoh():
@@ -441,7 +444,7 @@ def run_gotoh():
     elif len(sequences) >= 2:
         # init the gotoh
         nw = Gotoh(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                   similarity=(not args.distance))
+                   similarity=(not args.distance), match_scoring=args.match, mismatch_scoring=args.mismatch)
         results = nw.pairwise_alignments(sequences)
         LOGGER.info("SUMMARY:\n%s" % pformat(results))
 
@@ -462,10 +465,16 @@ if __name__ == '__main__':
                         help='A regex to define a filter, which will be applied to the files parsed.')
     parser.add_argument('-a', '--all', action='store_true', default=False,
                         help='Return ALL optimal alignments.')
-    parser.add_argument('-g', '--gap_penalty', type=float, default=6.0,
-                        help='Gap penalty, float value. default is 6.0')
+    parser.add_argument('-g', '--gap_penalty', type=float, default=11,
+                        help='Gap start cost, float value. default is 11')
+    parser.add_argument('-ge', '--gap_extension', type=float, default=1,
+                        help='Gap extension cost, float value. default is 1')
+    parser.add_argument('-m', '--match', type=float, default=1,
+                        help='match score, only used if no substitution matrix is given, float value. default is 1')
+    parser.add_argument('-mm', '--mismatch', type=float, default=-1,
+                        help='match score, only used if no substitution matrix is given, float value. default is -1')
     parser.add_argument('-s', '--substitution_matrix', type=str, default="BLOSSUM",
-                        help='Substitution Matrix (BLOSSUM | PAM) default is BLOSSUM')
+                        help='Substitution Matrix (BLOSSUM | PAM | NONE) default is BLOSSUM')
     parser.add_argument('-d', '--distance', action='store_true', default=False,
                         help='Calculate DISTANCE instead of SIMILARITY')
 

@@ -32,7 +32,7 @@ class GotohTest(unittest.TestCase):
                                                               [-math.inf, 0., 0., 0., 0.]]))
 
     def test_scoring_blossum(self):
-        """Testing score calculation using Blossum62 + Gap Penalty = 6"""
+        """Testing score calculation using Blossum62 + Gap Penalty = -11, gap extend = -1"""
 
         print("######### Testing calculation of scoring matrix. ###########")
         got = Gotoh(substitution_matrix=MatrixInfo.blosum62, gap_penalty=-11, gap_extend=-1)
