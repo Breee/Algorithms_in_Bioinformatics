@@ -4,8 +4,8 @@ import numpy
 from Bio.SubsMat import MatrixInfo
 
 from logger.log import setup_custom_logger
-from utility.utils import Alignment, Operation, ScoringType, check_for_duplicates, parse_directory, parse_fasta_files, \
-    split_directories_and_files, Alphabet
+from utility.utils import Alignment, Alphabet, Operation, ScoringType, check_for_duplicates, parse_directory, \
+    parse_fasta_files, split_directories_and_files
 
 LOGGER = setup_custom_logger("nw", logfile="needleman_wunsch.log")
 
@@ -275,6 +275,7 @@ class NeedlemanWunsch(object):
         ('test1', Seq('AAAAA', SingleLetterAlphabet()), 'test2', Seq('AAAA', SingleLetterAlphabet()), 10.0, \
 [Alignment: (AAAAA, -AAAA), Score: 10])
         """
+        self.alphabet.check_words({seq1, seq2})
         self.calculate_scoring_matrix(seq1.seq, seq2.seq)
         self.desired_traceback = self.traceback_matrix[-1][-1]
         self.split_traceback_set()
