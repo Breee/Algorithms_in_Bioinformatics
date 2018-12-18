@@ -15,11 +15,11 @@ class GotohTest(unittest.TestCase):
         print(got.scoring_matrix_D)
         print(got.scoring_matrix_P)
         print(got.scoring_matrix_Q)
-        assert np.array_equal(got.scoring_matrix_D, np.array([[0., -9., -12., -15., -18.],
-                                                              [-9., 0., 0., 0., 0.],
+        assert np.array_equal(got.scoring_matrix_D, np.array([[0., -12., -13., -14., -15.],
                                                               [-12., 0., 0., 0., 0.],
-                                                              [-15., 0., 0., 0., 0.],
-                                                              [-18., 0., 0., 0., 0.]]))
+                                                              [-13., 0., 0., 0., 0.],
+                                                              [-14., 0., 0., 0., 0.],
+                                                              [-15., 0., 0., 0., 0.]]))
         assert np.array_equal(got.scoring_matrix_P, np.array([[-math.inf, -math.inf, -math.inf, -math.inf, -math.inf],
                                                               [-math.inf, 0., 0., 0., 0.],
                                                               [-math.inf, 0., 0., 0., 0.],
