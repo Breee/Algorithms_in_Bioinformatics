@@ -4,8 +4,8 @@ import numpy
 from Bio.SubsMat import MatrixInfo
 
 from logger.log import setup_custom_logger
-from utility.utils import Alignment, Operation, ScoringType, check_for_duplicates, parse_directory, parse_fasta_files, \
-    split_directories_and_files
+from utility.utils import Alignment, Alphabet, Operation, ScoringType, check_for_duplicates, parse_directory, \
+    parse_fasta_files, split_directories_and_files
 
 LOGGER = setup_custom_logger("nw", logfile="gotoh.log")
 
@@ -59,7 +59,9 @@ class Gotoh(object):
     def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=11, gap_extend=1,
                  substitution_matrix=MatrixInfo.blosum62,
                  similarity=True):
-        LOGGER.info("Initialzing needleman-wunsch.")
+        LOGGER.info("Initialzing gotoh.")
+        sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"}
+        self.alphabet = Alphabet(sigma)
         # scores
         self.match_scoring = match_scoring
         self.indel_scoring = indel_scoring
@@ -354,6 +356,8 @@ class Gotoh(object):
         [Alignment: (ACA, A-A), Score: -7],
          SCORE: -7.0)
         """
+
+        self.alphabet.check_words({seq1, seq2})
         self.calculate_scoring_matrix(seq1.seq, seq2.seq)
         self.desired_traceback = self.traceback_matrix[-1][-1]
         self.split_traceback_set()
@@ -443,9 +447,9 @@ def run_gotoh():
         exit(1)
     elif len(sequences) >= 2:
         # init the gotoh
-        nw = Gotoh(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                   similarity=(not args.distance), match_scoring=args.match, mismatch_scoring=args.mismatch)
-        results = nw.pairwise_alignments(sequences)
+        got = Gotoh(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
+                    similarity=(not args.distance), match_scoring=args.match, mismatch_scoring=args.mismatch)
+        results = got.pairwise_alignments(sequences)
         LOGGER.info("SUMMARY:\n%s" % pformat(results))
 
 

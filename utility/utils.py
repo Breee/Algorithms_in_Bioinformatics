@@ -44,6 +44,7 @@ SeqRecord(seq=Seq('AAAA', SingleLetterAlphabet()), id='test2', name='test2', des
     records = []
     for file in files:
         records.extend(list(SeqIO.parse(file, "fasta")))
+
     return records
 
 
@@ -179,3 +180,42 @@ def count_gaps_in_pairwise_alignment(pairwise_alignment):
         if pairwise_alignment[0][i] in ["-", "X"] or pairwise_alignment[1][i] in ["-", "X"]:
             count += 1
     return count
+
+
+class NotInAlphabetError(Exception):
+    """
+    Exception which is thrown, when a given sequence of letters is not in the alphabet.
+    """
+    pass
+
+
+class Alphabet(object):
+
+    def __init__(self, letters):
+        self.letters = set(letters)
+
+    def is_in_alphabet(self, word):
+        letter_set = set(word)
+        return letter_set.issubset(self.letters)
+
+    def check_words(self, words):
+        """
+        Function which checks for all elements of an iterable, if their set of letters are a subset of the alphabet
+        :param words:
+        :return: void. throws NotInAlphabetError if a word contains letters, which are not part of the alphabet.
+
+        >>> alph =  Alphabet({"A","B","C","D","E","F"})
+        >>> alph.check_words(["AB", "A", "C"])
+        True
+        >>> alph.check_words(["AB", "A", "Z"])
+        Traceback (most recent call last):
+        utils.NotInAlphabetError: word contains letters which are not in the alphabet.SEQUENCE: Z, ALPHABET:['A', \
+'B', 'C', 'D', 'E', 'F']
+        """
+        for word in words:
+            if not self.is_in_alphabet(word):
+                raise NotInAlphabetError(
+                        "word contains letters which are not in the alphabet.SEQUENCE: %s, ALPHABET:%s" % (
+                            word, sorted(self.letters)))
+
+        return True
