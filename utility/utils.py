@@ -219,3 +219,35 @@ class Alphabet(object):
                             word, sorted(self.letters)))
 
         return True
+
+
+class TracebackCell(object):
+    """
+    A TracebackCell object which consists of
+    predecessors: a list of TracebackCells, which are predecessors of this Cell.
+    score:  score of this Cell.
+    """
+
+    def __init__(self, predecessors, score):
+        self.predecessors = predecessors
+        self.score = score
+
+    def __str__(self):
+        return "(%s, %s)" % (self.predecessors, self.score)
+
+    def __repr__(self):
+        return "(%s, %s)" % (self.predecessors, self.score)
+
+
+class Result(object):
+    def __init__(self, seq1_ID, seq1, seq2_ID, seq2, alignments, score):
+        self.seq1_ID = seq1_ID
+        self.seq2_ID = seq2_ID
+        self.seq1 = seq1
+        self.seq2 = seq2
+        self.alignments = alignments
+        self.score = score
+
+    def __repr__(self):
+        return "(SEQ1: %s, %s, SEQ2: %s, %s,\n ALIGNMENTS:\n%s,\n SCORE: %s)" % (
+            self.seq1_ID, self.seq1, self.seq2_ID, self.seq2, pformat(self.alignments), self.score)

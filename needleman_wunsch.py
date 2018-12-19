@@ -4,46 +4,14 @@ import numpy
 from Bio.SubsMat import MatrixInfo
 
 from logger.log import setup_custom_logger
-from utility.utils import Alignment, Alphabet, Operation, ScoringType, check_for_duplicates, parse_directory, \
-    parse_fasta_files, split_directories_and_files
+from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, check_for_duplicates, \
+    parse_directory, parse_fasta_files, split_directories_and_files
 
 LOGGER = setup_custom_logger("nw", logfile="needleman_wunsch.log")
 
 import argparse
 import os
 import itertools
-
-
-class TracebackCell(object):
-    """
-    A TracebackCell object which consists of
-    predecessors: a list of TracebackCells, which are predecessors of this Cell.
-    score:  score of this Cell.
-    """
-
-    def __init__(self, predecessors, score):
-        self.predecessors = predecessors
-        self.score = score
-
-    def __str__(self):
-        return "(%s, %s)" % (self.predecessors, self.score)
-
-    def __repr__(self):
-        return "(%s, %s)" % (self.predecessors, self.score)
-
-
-class Result(object):
-    def __init__(self, seq1_ID, seq1, seq2_ID, seq2, alignments, score):
-        self.seq1_ID = seq1_ID
-        self.seq2_ID = seq2_ID
-        self.seq1 = seq1
-        self.seq2 = seq2
-        self.alignments = alignments
-        self.score = score
-
-    def __repr__(self):
-        return "(SEQ1: %s, %s, SEQ2: %s, %s,\n ALIGNMENTS:\n%s,\n SCORE: %s)" % (
-            self.seq1_ID, self.seq1, self.seq2_ID, self.seq2, pformat(self.alignments), self.score)
 
 
 class NeedlemanWunsch(object):
@@ -272,10 +240,12 @@ class NeedlemanWunsch(object):
         >>> sequences = parse_fasta_files(fasta)
         >>> res = nw.run(sequences[0],sequences[1], complete_traceback=False)
         >>> res
-        ('test1', Seq('AAAAA', SingleLetterAlphabet()), 'test2', Seq('AAAA', SingleLetterAlphabet()), 10.0, \
-[Alignment: (AAAAA, -AAAA), Score: 10])
+        (SEQ1: test1, ACA, SEQ2: test2, AA,
+         ALIGNMENTS:
+        [Alignment: (ACA, A-A), Score: 2],
+         SCORE: 2.0)
         """
-        self.alphabet.check_words({seq1, seq2})
+        self.alphabet.check_words({seq1.seq, seq2.seq})
         self.calculate_scoring_matrix(seq1.seq, seq2.seq)
         self.desired_traceback = self.traceback_matrix[-1][-1]
         self.split_traceback_set()
@@ -345,7 +315,8 @@ def process_program_arguments():
                 "Error, provide input file/files/directory/directories using -i / --input. -h/--help for all "
                 "arguments.")
         exit(1)
-    if args.substitution_matrix != "PAM" and args.substitution_matrix != "BLOSSUM":
+    if args.substitution_matrix != "PAM" and args.substitution_matrix != "BLOSSUM" and args.substitution_matrix != \
+            "NONE":
         LOGGER.critical(
                 "UNKNOWN parameter for substitution matrix. Choose BLOSSUM or PAM, falling back to BLOSSUM")
         args.substitution_matrix = MatrixInfo.blosum62
@@ -353,6 +324,8 @@ def process_program_arguments():
         args.substitution_matrix = MatrixInfo.blosum62
     elif args.substitution_matrix == "PAM":
         args.substitution_matrix = MatrixInfo.pam250
+    elif args.substitution_matrix == "NONE":
+        args.substitution_matrix = None
 
 
 def run_needleman():
@@ -387,7 +360,7 @@ if __name__ == '__main__':
     parser.add_argument('-g', '--gap_penalty', type=float, default=6.0,
                         help='Gap penalty, float value. default is 6.0')
     parser.add_argument('-s', '--substitution_matrix', type=str, default="BLOSSUM",
-                        help='Substitution Matrix (BLOSSUM | PAM) default is BLOSSUM')
+                        help='Substitution Matrix (BLOSSUM | PAM | NONE) default is BLOSSUM')
     parser.add_argument('-d', '--distance', action='store_true', default=False,
                         help='Calculate DISTANCE instead of SIMILARITY')
 

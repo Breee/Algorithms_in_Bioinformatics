@@ -4,8 +4,8 @@ import numpy
 from Bio.SubsMat import MatrixInfo
 
 from logger.log import setup_custom_logger
-from utility.utils import Alignment, Alphabet, Operation, ScoringType, check_for_duplicates, parse_directory, \
-    parse_fasta_files, split_directories_and_files
+from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, check_for_duplicates, \
+    parse_directory, parse_fasta_files, split_directories_and_files
 
 LOGGER = setup_custom_logger("nw", logfile="gotoh.log")
 
@@ -13,42 +13,6 @@ import argparse
 import os
 import itertools
 import math
-
-
-class TracebackCell(object):
-    """
-    A TracebackCell object which consists of
-    predecessors: a list of TracebackCells, which are predecessors of this Cell.
-    score:  score of this Cell.
-    """
-
-    def __init__(self, predecessors, score):
-        self.predecessors = predecessors
-        self.score = score
-
-    def __str__(self):
-        return "(%s, %s)" % (self.predecessors, self.score)
-
-    def __repr__(self):
-        return "(%s, %s)" % (self.predecessors, self.score)
-
-
-class Result(object):
-    """
-    Represents a result tuple.
-    """
-
-    def __init__(self, seq1_ID, seq1, seq2_ID, seq2, alignments, score):
-        self.seq1_ID = seq1_ID
-        self.seq2_ID = seq2_ID
-        self.seq1 = seq1
-        self.seq2 = seq2
-        self.alignments = alignments
-        self.score = score
-
-    def __repr__(self):
-        return "(SEQ1: %s, %s, SEQ2: %s, %s,\n ALIGNMENTS:\n%s,\n SCORE: %s)" % (
-            self.seq1_ID, self.seq1, self.seq2_ID, self.seq2, pformat(self.alignments), self.score)
 
 
 class Gotoh(object):
@@ -346,18 +310,18 @@ class Gotoh(object):
         :param complete_traceback:
         :return:
 
-        >>> got = Gotoh(match_scoring=1, mismatch_scoring=-1,substitution_matrix=None)
+        >>> got = Gotoh(match_scoring=1, mismatch_scoring=-1, gap_penalty=-10, gap_extend=-3, substitution_matrix=None)
         >>> fasta = ["data/test1.fa", "data/test2.fa"]
         >>> sequences = parse_fasta_files(fasta)
         >>> res = got.run(sequences[0],sequences[1], complete_traceback=True)
         >>> res
         (SEQ1: test1, ACA, SEQ2: test2, AA,
          ALIGNMENTS:
-        [Alignment: (ACA, A-A), Score: -7],
-         SCORE: -7.0)
+        [Alignment: (ACA, A-A), Score: -11],
+         SCORE: -11.0)
         """
 
-        self.alphabet.check_words({seq1, seq2})
+        self.alphabet.check_words({seq1.seq, seq2.seq})
         self.calculate_scoring_matrix(seq1.seq, seq2.seq)
         self.desired_traceback = self.traceback_matrix[-1][-1]
         self.split_traceback_set()
