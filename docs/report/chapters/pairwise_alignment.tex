@@ -1,0 +1,199 @@
+%!TEX root = ../proposal.tex
+
+\section{Pairwise Sequence-Alignment}
+\label{sec:pairwise_alignment}
+Pairwise sequence alignment methods are used to find the best-matching piecewise (local or global) alignments of two query sequences.
+Pairwise alignments can only be used between two sequences at a time, but they are efficient to calculate and are often used for methods that do not require extreme precision (such as searching a database for sequences with high similarity to a query).
+The technique of dynamic programming can be applied to produce global alignments via the Needleman-Wunsch algorithm, and local alignments via the Smith-Waterman algorithm. In typical usage, protein alignments use a substitution matrix to assign scores to amino-acid matches or mismatches, and a gap penalty for matching an amino acid in one sequence to a gap in the other. DNA and RNA alignments may use a scoring matrix, but in practice often simply assign a positive match score, a negative mismatch score, and a negative gap penalty. (In standard dynamic programming, the score of each amino acid position is independent of the identity of its neighbors, and therefore base stacking effects are not taken into account.(\url{https://en.wikipedia.org/wiki/Sequence_alignment#Pairwise_alignment})
+
+\subsection{Needleman-Wunsch-Algorithm}
+\label{sec:needleman}
+Needleman-Wunsch is used for to calculate the pairwise aligments of sequences.
+The idea is to use dynamic programming, to calculate the optimal alignment of two sequences $seq_1,seq_2$ (or more general for two strings),
+and store information, which sequence of operations we have to perform, to convert $seq_1$ to $seq_2$.
+Operations are insertions ($\uparrow$), deletions ($\leftarrow$) and matches ($\nwarrow$). An insertion means, we align a gap in $seq_1$ to a character in $seq_2$.
+A deletion means, we align a character in $seq_1$ to a gap in $seq_2$.
+A match means, we match the current characters in $seq_1$ and $seq_2$.
+Let S,T be matrices of size $|seq_1|+1 \times |seq_2|+1$, in S we store scores and in T we store tracebacks cells,
+traceback cells are lists of tuples of predecessors of a cell, of the form (operation, predecessor)
+The algorithm works as follows:
+\begin{enumerate}
+  \item Input: 2 sequences of length m,n.
+  \item Initialize $S,T$:
+    \begin{itemize}
+      \item $S[0][0] = 0, S[0][j] = gapcost * j, S[i][0] = gapcost * i $,\\ for $1 \leq i \leq |seq_1| +1$ and $1 \leq j \leq |seq_2| + 1$
+      \item $T[0][0] = [], T[0][j] = [(\leftarrow,T[0][j-1])], T[i][0] = [(\uparrow,T[i-1][0])]$,\\
+      for $1 \leq i \leq |seq_1| +1$ and $1 \leq j \leq |seq_2| + 1$
+    \end{itemize}
+  \item Calculate the rest of the matrix.:
+    \begin{itemize}
+      \item $S[i][j] = max((\nwarrow, S[i-1][j-1] + score(seq_1[i],seq_1[j])), (\leftarrow, S[i][j-1]), (\uparrow, S[i-1][j]))$
+      \item $T[i][j]$ is the list of predecessors, which contains everything that is a maximum in the above case.
+    \end{itemize}
+  \item The bottom right element in S, i.e. $S[-1][-1]$, stores the score of the optimal alignment,
+  \item The bottom right element in T, i.e. $T[-1][-1]$, stores the traceback cell of the optimal alignment.\\
+  To obtain all paths back to the root $T[0][0]$, we traverse through all predecessors, until we reach $T[0][0]$.
+\end{enumerate}
+
+\subsection{example:}
+\begin{itemize}
+  \item Consider the sequences AAT and AAC,
+  \item Scoring: match = 1, mismatch = -1, gap penalty = -1.
+  \item 1. Initialize matrices S,T:\\
+  $S =  \begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 0. & 0. & 0.\\
+      -2. & 0. & 0. & 0.\\
+      -3. & 0. & 0. & 0.\\
+    \end{bmatrix}$
+   $T = \begin{bmatrix}
+      - & \leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & 0 & 0 & 0\\
+      \uparrow & 0 & 0 & 0\\
+      \uparrow & 0 & 0 & 0\\
+    \end{bmatrix}$
+  \item 2. calc S[1][1], T[1][1]\\
+  $S = \begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 1. & 0. & 0.\\
+      -2. & 0. & 0. & 0.\\
+      -3. & 0. & 0. & 0.\\
+    \end{bmatrix}$
+   $T = \begin{bmatrix}
+      - & \leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & \nwarrow & \nwarrow|\leftarrow & 0\\
+      \uparrow & 0 & 0 & 0\\
+      \uparrow & 0 & 0 & 0\\
+    \end{bmatrix}$
+  \item 2. calc S[1][2], T[1][2]\\
+  $S = \begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 1. & 0. & 0.\\
+      -2. & 0. & 0. & 0.\\
+      -3. & 0. & 0. & 0.\\
+    \end{bmatrix}$
+   $T = \begin{bmatrix}
+      - & \leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & \nwarrow & \nwarrow|\leftarrow & 0\\
+      \uparrow & 0 & 0 & 0\\
+      \uparrow & 0 & 0 & 0\\
+    \end{bmatrix}$
+    \item 3. calc S[1][3], T[1][3]\\
+    $S =\begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 1. & 0. & -1.\\
+      -2. & 0. & 0. & 0.\\
+      -3. & 0. & 0. & 0.\\
+    \end{bmatrix}$
+     $T = \begin{bmatrix}
+      - & \leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & \nwarrow & \nwarrow|\leftarrow & \leftarrow\\
+      \uparrow & 0 & 0 & 0\\
+      \uparrow & 0 & 0 & 0\\
+    \end{bmatrix}$
+    \item 4. calc S[2][1], T[2][1]\\
+    $S = \begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 1. & 0. & -1.\\
+      -2. & 0. & 0. & 0.\\
+      -3. & 0. & 0. & 0.\\
+    \end{bmatrix}$
+     $T =\begin{bmatrix}
+      - & \leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & \nwarrow & \nwarrow|\leftarrow & \leftarrow\\
+      \uparrow & \nwarrow|\uparrow & 0 & 0\\
+      \uparrow & 0 & 0 & 0\\
+    \end{bmatrix}$
+
+    \item 5. calc S[2][2], T[2][2]\\
+    $S =    \begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 1. & 0. & -1.\\
+      -2. & 0. & 2. & 0.\\
+      -3. & 0. & 0. & 0.\\
+    \end{bmatrix}$
+     $T = \begin{bmatrix}
+      - & \leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & \nwarrow & \nwarrow|\leftarrow & \leftarrow\\
+      \uparrow & \nwarrow|\uparrow & \nwarrow & 0\\
+      \uparrow & 0 & 0 & 0\\
+    \end{bmatrix}$
+    \item 6. calc S[2][3], T[2][3]\\
+    $S =     \begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 1. & 0. & -1.\\
+      -2. & 0. & 2. & 1.\\
+      -3. & 0. & 0. & 0.\\
+    \end{bmatrix}$
+     $T =   \begin{bmatrix}
+      - & \leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & \nwarrow & \nwarrow|\leftarrow & \leftarrow\\
+      \uparrow & \nwarrow|\uparrow & \nwarrow & \leftarrow\\
+      \uparrow & 0 & 0 & 0\\
+    \end{bmatrix}$
+    \item 7. calc S[3][1], T[3][1]\\
+    $S =     \begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 1. & 0. & -1.\\
+      -2. & 0. & 2. & 1.\\
+      -3. & -1. & 0. & 0.\\
+    \end{bmatrix}$
+     $T =     \begin{bmatrix}
+      - & \leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & \nwarrow & \nwarrow|\leftarrow & \leftarrow\\
+      \uparrow & \nwarrow|\uparrow & \nwarrow & \leftarrow\\
+      \uparrow & \uparrow & 0 & 0\\
+    \end{bmatrix}$
+    \item 8. calc S[3][2], T[3][2]\\
+    $S =     \begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 1. & 0. & -1.\\
+      -2. & 0. & 2. & 1.\\
+      -3. & -1. & 1. & 0.\\
+    \end{bmatrix}$
+     $T =     \begin{bmatrix}
+      - & \leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & \nwarrow & \nwarrow|\leftarrow & \leftarrow\\
+      \uparrow & \nwarrow|\uparrow & \nwarrow & \leftarrow\\
+      \uparrow & \uparrow & \uparrow & 0\\
+    \end{bmatrix}$
+    \item 9. calc S[3][3], T[3][3]\\
+    $S =     \begin{bmatrix}
+      0. & -1. & -2. & -3.\\
+      -1. & 1. & 0. & -1.\\
+      -2. & 0. & 2. & 1.\\
+      -3. & -1. & 1. & 1.\\
+    \end{bmatrix}$
+     $T =     \begin{bmatrix}
+      - &\leftarrow & \leftarrow & \leftarrow\\
+      \uparrow & \nwarrow & \nwarrow|\leftarrow & \leftarrow\\
+      \uparrow & \nwarrow|\uparrow & \nwarrow & \leftarrow\\
+      \uparrow & \uparrow & \uparrow & \nwarrow\\
+    \end{bmatrix}$
+   \item Our traceback matrix stored all predecessors of each cell, so we simply track back and obtain the set of tracebacks
+   $$tracebacks = \{[\nwarrow, \nwarrow, \nwarrow]\}$$
+   In this case there is only one traceback.
+   \item The optimal aligment is obtained by iterating over the traceback.
+   We start at the start of the sequences. And handle each traceback element as follows.
+   \begin{itemize}
+     \item If we read $\nwarrow$, we align the current characters and move forward 1 position in both sequences.
+     \item If we read $\leftarrow$, we align a gap "-" to the current character in $seq_2$ align and move forward 1 position in $seq_2$.
+     \item If we read $\uparrow$, we align a gap "-" to the current character in $seq_1$ align and move forward 1 position in $seq_1$.
+   \end{itemize}
+   If we do that for our example, we obtain the alignment:
+   $$\begin{matrix}
+    A & A & T\\
+    A & A & C
+  \end{matrix}$$
+\end{itemize}
+
+
+\subsection{Gotoh-Algorithm}
+\label{sec:gotoh}
+Gotohs algorithm is similar to needleman wunsch.
+Just the recursion changes, we are now using 3 matrices D,Q,P, where the recursions are as follows:
+$$D[i][j] = max(D[i-1][j-1] + w(a,b))$$
+$$P[i][j] = max(D[i-1][j] + g(1), P[i-1][j]+ \beta)$$
+$$Q[i][j] = max(D[i][j-1] + g(1), Q[i][j-1]+ \beta)$$
+The traceback now goes through those 3 matrices.
+We handle it as before, and store the operations in a single traceback matrix.

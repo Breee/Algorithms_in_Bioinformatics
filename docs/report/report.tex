@@ -1,0 +1,27 @@
+\documentclass[12pt,a4paper,english,intoc,bibliography=totoc,index=totoc,BCOR10mm,captions=tableheading,fleqn,oneside]{scrartcl}
+\input{setup}
+
+\begin{document}
+\title{Algorithms in Bioinformatic}
+\author{\href{mailto:loefflju@informatik.uni-freiburg.de}{Julian L\"offler}\\ {\small University of Freiburg, Germany}\\[1cm]{\small Advisor: Omer Alkhnbashi}}
+\date{\small\today}
+
+\maketitle
+\thispagestyle{empty}
+\clearpage
+\pagenumbering{roman}
+% this means within this section nothing can be referenced with a hyperlink
+\hypersetup{pageanchor=false}
+\tableofcontents
+\hypersetup{pageanchor=true}  % re-enable hyperlinking
+
+\clearpage
+\pagenumbering{arabic}
+\input{chapters/pairwise_alignment.tex}
+\input{chapters/multiple_sequence_alignment.tex}
+\input{chapters/clustering.tex}
+\pagebreak
+\bibliographystyle{biblio/IEEEtran}
+\bibliography{biblio/Plasma}
+
+\end{document}

@@ -1,0 +1,250 @@
+
+\usepackage{lmodern}
+\renewcommand{\sfdefault}{lmss}
+\renewcommand{\ttdefault}{lmtt}
+
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{ textcomp }
+\usepackage{ stmaryrd }
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\setcounter{secnumdepth}{3}
+\setlength{\parskip}{\medskipamount}
+\setlength{\parindent}{0pt}
+\usepackage{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[unicode=true,
+bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=1,
+breaklinks=false,pdfborder={0 0 0},backref=false,colorlinks=true]{hyperref}
+
+\hypersetup{pdftitle={Generation of commutativity conditions},
+	pdfauthor={Julian Loeffler},
+	pdfsubject={Generation of commutativity conditions},
+	pdfkeywords={},
+	pdfpagelayout=OneColumn, pdfnewwindow=true, pdfstartview=XYZ, plainpages=false,
+	colorlinks=true,linkcolor=red}
+	% ------------------- functional, default-------------------
+	\usepackage[dvipsnames]{xcolor}
+	\usepackage{color, colortbl}
+	\usepackage{fancyvrb}
+	\usepackage{array}  % custom format per column in table - needed on the title page
+	\usepackage{graphicx}  % include graphics
+	\usepackage{subcaption}
+	\usepackage{amsmath}  % |
+	\usepackage{amsthm}   % | math, bmatrix etc
+	\usepackage{amsfonts} % |
+	\usepackage{amssymb}
+	\usepackage{calc}  % calculate within LaTeX
+	\usepackage{enumitem}
+	\usepackage{fancyvrb}
+	\usepackage{pdfpages}
+	\usepackage{ltablex}
+	\usepackage{tabularx}
+	%tablularx columntype
+	\newcolumntype{s}{>{\hsize=.25\hsize}X}
+
+	\usepackage{numprint}
+	\usepackage{float}
+	\usepackage{dirtree}
+	\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+\pdfpageheight\paperheight
+\pdfpagewidth\paperwidth
+
+
+\@ifundefined{date}{}{\date{}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+% Linkflaeche für Querverweise vergrößern und automatisch benennen
+\AtBeginDocument{\renewcommand{\ref}[1]{\mbox{\autoref{#1}}}}
+\newlength{\abc}
+\settowidth{\abc}{\space}
+\AtBeginDocument{%
+	\addto\extrasngerman{
+		\renewcommand{\equationautorefname}{\hspace{-\abc}}
+		\renewcommand{\sectionautorefname}{Kap.\negthinspace}
+		\renewcommand{\subsectionautorefname}{Kap.\negthinspace}
+		\renewcommand{\subsubsectionautorefname}{Kap.\negthinspace}
+		\renewcommand{\figureautorefname}{Abb.\negthinspace}
+		\renewcommand{\tableautorefname}{Tab.\negthinspace}
+	}
+}
+
+% für den Fall, dass jemand die Bezeichnung "Gleichung" haben will
+%\renewcommand{\eqref}[1]{equation~(\negthinspace\autoref{#1})}
+
+% Setzt den Link für Sprünge zu Gleitabbildungen
+% auf den Anfang des Gleitobjekts und nicht aufs Ende
+\usepackage[figure]{hypcap}
+
+% Die Seiten des Inhaltsverzeichnisses werden römisch numeriert,
+% ein PDF-Lesezeichen für das Inhaltsverzeichnis wird hinzugefügt
+\let\myTOC\tableofcontents
+\renewcommand\tableofcontents{%
+	\pdfbookmark[1]{\contentsname}{}
+	\myTOC
+}
+% Fixes table of content spacings. e.g. 10.10blubb becomes 10.10 blubb
+\usepackage[tocindentauto]{tocstyle}
+\usetocstyle{standard}
+
+%footnote URL
+\usepackage{url}
+
+%code
+\usepackage{listings}
+\usepackage{accsupp}
+
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+	numbers=left,
+  stepnumber=1,
+  frame=single,
+	columns=flexible,
+  keepspaces=true,
+  xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{purple!40!black},
+  identifierstyle=\color{blue},
+  stringstyle=\color{orange},
+	captionpos=b,
+	belowcaptionskip=0.1cm,
+	belowskip=0.1cm,
+	numberstyle=\noncopynumber
+}
+
+\definecolor{Black}{gray}{0.0}
+\definecolor{White}{gray}{0.9}
+
+\lstdefinestyle{bash}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+	numbers=left,
+  stepnumber=1,
+  frame=single,
+	columns=flexible,
+  keepspaces=true,
+  xleftmargin=\parindent,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily\color{black},
+  keywordstyle=\bfseries\color{black},
+  commentstyle=\itshape\color{black},
+  identifierstyle=\color{black},
+  stringstyle=\color{black},
+	captionpos=b,
+	belowcaptionskip=0.1cm,
+	belowskip=0.1cm,
+	numberstyle=\noncopynumber,
+	deletekeywords = {enable,command,signed,unsigned,float}
+}
+
+\newcommand{\noncopynumber}[1]{%
+    \BeginAccSupp{method=escape,ActualText={}}%
+    #1%
+    \EndAccSupp{}%
+}
+
+\lstset{style=customc}
+%\renewcommand{\lstlistingname}{Code}
+
+\usepackage{xspace}
+%------------------------------------------------------------------------------
+%       (re)new commands / settings
+%------------------------------------------------------------------------------
+% ----------------- referencing ----------------
+
+\newcommand{\classname}[1]{\texttt{#1}}
+\newcommand{\verifyerror}{\texttt{\_\_VERIFIER\_error()}\xspace}
+\newcommand{\nondetfloat}{\texttt{\_\_VERIFIER\_nondet\_float()}\xspace}
+\newcommand{\nondetdouble}{\texttt{\_\_VERIFIER\_nondet\_double()}\xspace}
+\newcommand{\precond}{\texttt{\_\_VERIFIER\_precond\_reach()}\xspace}
+\newcommand{\ultimate}{\textsc{Ultimate}\xspace}
+\newcommand{\automizer}{\textsc{Ultimate Automizer}\xspace}
+\newcommand{\framac}{\textsc{Frama-C}\xspace}
+\newcommand{\cbmc}{\textsc{CBMC}\xspace}
+\newcommand{\clang}{\textsc{Clang Static Analyzer}\xspace}
+\newcommand{\infer}{\textsc{Facebook Infer}\xspace}
+\newcommand{\coverity}{\textsc{Coverity}\xspace}
+\newcommand{\nox}{\textsc{Nox-Executor}\xspace}
+\newcommand{\safe}{\texttt{SAFE}\xspace}
+\newcommand{\unsafe}{\texttt{UNSAFE}\xspace}
+\newcommand{\timeout}{\texttt{TIMEOUT}\xspace}
+\newcommand{\error}{\texttt{ERROR}\xspace}
+\newcommand{\unknown}{\texttt{UNKNOWN}\xspace}
+\newcommand{\trans}[1]{\llparenthesis #1 \rrparenthesis}
+\newcommand{\liftedtrans}[1]{\mathit{trans}(#1)}
+\newcommand{\multilineequation}[1]{\Bigl(\begin{matrix}#1\end{matrix}\Bigr)}
+\newcommand{\servois}{\textsc{Servois}\xspace}
+\newcommand{\refine}{\texttt{refine}\xspace}
+\newcommand{\refinefunc}[1]{\texttt{refine}(#1)\xspace}
+\newcommand{\lift}{\texttt{lift}\xspace}
+\newcommand{\choosecmd}{\texttt{choose}\xspace}
+\newcommand{\choosecmdfunc}[1]{\texttt{choose}(#1)\xspace}
+\newcommand{\true}{\mathit{true}\xspace}
+\newcommand{\false}{\mathit{false}\xspace}
+
+% ------------------- marker commands -------------------
+% ToDo command
+%\newcommand{\todo}[1]{\textbf{\textcolor{red}{(TODO: #1)}}}
+\newcommand{\extend}[1]{\textbf{\textcolor{green}{(EXTEND: #1)}}}
+% Lighter color to note down quick drafts
+%\newcommand{\draft}[1]{\textbf{\textcolor{NavyBlue}{(DRAFT: #1)}}}
+
+\usepackage[%
+%    disable%
+]{todonotes}
+
+% wenn man disable einkommentiert, verschwinden alle TODOs aus dem Text.
+%% some todo commands
+\newcommand{\dd}[1]{\todo[color=green!40]{#1}\xspace}
+\newcommand{\mg}[1]{\todo[color=blue!40]{#1}\xspace}
+\newcommand{\jl}[1]{\todo[color=black!40, size=\tiny]{JL: #1}\xspace}
+\newcommand{\jlin}[2]{\todo[inline,color=black!40,caption={#1}]{JL: #2}}
+\newcommand{\jlins}[1]{\jlin{#1}{#1}}
+\newcommand{\todoin}[1]{\todo[inline]{#1}}
+\newcommand{\secnotes}[1]{\todo[inline,color=cyan!40]{#1}\xspace}
+\newcommand{\cn}{\todo{Citation needed}\xspace}
+\newcommand{\ddin}[2]{\todo[inline,color=green!40,caption={#1}]{#2}}
+\newcommand{\ddins}[1]{\ddin{#1}{#1}}
+\newcommand{\mgin}[2]{\todo[inline,color=blue!40,caption={#1}]{#2}}
+\newcommand{\mgins}[1]{\mgin{#1}{#1}}
+
+
+\usepackage[noabbrev,capitalize]{cleveref}
+
+\newtheoremstyle{break}
+  {\topsep}{\topsep}%
+  {\itshape}{}%
+  {\bfseries}{}%
+  {\newline}{}%
+\theoremstyle{break}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+\usepackage{mathtools}
+\usepackage[]{algorithmicx}
+\usepackage[]{algorithm}
+\usepackage{algpseudocode}
+
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.misc, positioning}
+\usetikzlibrary{calc, quotes, tikzmark, shapes,arrows,automata}
+
+\newcommand{\figref}{Figure \ref}
+
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.3}
+\definecolor{ALUblue}{rgb}{0,.42,.714}
+\colorlet{ALUred}{red!70!black}
+\definecolor{ALUgreen}{rgb}{.1,.5,0}
+\definecolor{ALUblue}{rgb}{0,.42,.714}
+\colorlet{ALUgray}{white!95!ALUblue}
