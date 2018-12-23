@@ -1,15 +1,11 @@
-from pprint import pformat
-
 from logger.log import setup_custom_logger
 from needleman_wunsch import NeedlemanWunsch
-from utility.utils import Alphabet, Clustering, check_for_duplicates, parse_directory, parse_fasta_files, \
-    split_directories_and_files
+from utility.utils import Clustering, parse_fasta_files, \
+    parse_input
 
 LOGGER = setup_custom_logger("xpgma", logfile="xpgma.log")
 
 import argparse
-import os
-import numpy
 
 
 class GuideTree(object):
@@ -37,6 +33,7 @@ class Node(object):
         self.children = children
         self.parent = parent
         self.cost = cost
+        self.cost_until_here = None
 
     def is_leaf(self):
         return self.children is None
@@ -59,7 +56,7 @@ class Node(object):
         if self.children == None:  # Leaf
             res.append((self.name, self.cost))
         else:
-            res.append(([x for x in self.children], self.cost))
+            res.append(([x.newick for x in self.children], self.cost))
         return tuple(res)
 
 
@@ -69,12 +66,9 @@ class Xpgma(object):
     """
 
     def __init__(self, clustering_method=Clustering.UPGMA):
-        LOGGER.info("Initializing")
-        sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"}
-        self.alphabet = Alphabet(sigma)
+        LOGGER.info("Initializing Xpgma")
         # The scoring matrix, which is used to calculate the optimal alignment scores.
         self.distances = dict()
-        self.distance_matrix = numpy.zeros(shape=(1, 1), dtype=object)
         if clustering_method == "UPGMA":
             self.clustering_method = Clustering.UPGMA
         elif clustering_method == "WPGMA":
@@ -94,6 +88,7 @@ class Xpgma(object):
         :param alignments:
         :return:
         """
+        LOGGER.info("Collecting distances from alignments")
         for el in alignments:
             id1 = el.seq1_ID
             id2 = el.seq2_ID
@@ -105,6 +100,7 @@ class Xpgma(object):
                 self.guidetree.nodes[id2] = Node(id2, cost=None)
             self.distances[id1][id2] = el.score
             self.distances[id2][id1] = el.score
+        LOGGER.info("Distances collected: %s" % self.distances)
 
     @staticmethod
     def get_minimum_distance(distances: dict) -> tuple:
@@ -159,13 +155,12 @@ class Xpgma(object):
         """
         Consider distances {'A': {'B': 4.0, 'C': 0.0}, 'B': {'A': 4.0, 'C': -3.0}, 'C': {'A': 0.0, 'B': -3.0}}
         The minimum distance is dist(B,C), we now want to merge the clusters and recalculate distances.
-        The expected output should be:
-        {'BC': {'A': xxx}}
-
+        The new distances should be:
+        {'BC': {'A': xxx}, 'A': {'BC': xxx}}
 
         :param cluster1:
         :param cluster2:
-        :return:
+        :return: void
         """
         # get all keys that remain when we remove the clusters.
         keys = list(self.distances.keys())
@@ -218,56 +213,43 @@ class Xpgma(object):
         ((B:-1.50,C:-1.50):2.50,A:1.00)
         """
         while len(self.distances) > 1:
+            print(self.distances)
             # find the minimum distance.
             minimum, cluster1, cluster2 = self.get_minimum_distance(self.distances)
             # merge the closest clusters.
             self.merge_clusters(cluster1, cluster2)
             self.add_to_guidetree(cluster1, cluster2, minimum, finish=len(self.distances) == 1)
-        LOGGER.info(self.guidetree)
+        LOGGER.info("GUIDE TREE CALCULATED:\n%s" % self.guidetree)
         return self.guidetree
 
     def add_to_guidetree(self, cluster1, cluster2, cost, finish):
+        # add new node for the merged cluster.
         self.guidetree.nodes[cluster1 + cluster2] = Node(cluster1 + cluster2, cost=None,
                                                          children=[self.guidetree.nodes[cluster1],
                                                                    self.guidetree.nodes[cluster2]])
+        # Iterate over the clusters.
         clusters = [cluster1, cluster2]
-
         for cluster in clusters:
             if cluster not in self.guidetree.nodes:
+                # if a node does not exist, create it and add it to the guidetree.
                 self.guidetree.nodes[cluster] = Node(cluster, cost / 2,
                                                      parent=self.guidetree.nodes[cluster1 + cluster2])
             else:
+                # else get the existing cluster
                 node = self.guidetree.nodes[cluster]
+                # set the parent to the new merged cluster.
                 node.parent = cluster1 + cluster2
+                # if the node is a leaf, just set the costs.
                 if node.is_leaf():
                     node.cost = cost / 2
+                    node.cost_until_here = cost / 2
                 else:
-                    node.cost = cost / 2 - node.children[0].cost
+                    node.cost = cost / 2 - node.children[0].cost_until_here
+                    node.cost_until_here = node.children[0].cost_until_here + (
+                            cost / 2 - node.children[0].cost_until_here)
 
         if finish:
             self.guidetree.root = self.guidetree.nodes[cluster1 + cluster2]
-
-
-def parse_input():
-    fasta_files = []
-    # split input into files and directories.
-    directories, files = split_directories_and_files(input_list=args.input)
-    # check if input files are part of the directories to be checked
-    # an  check if directories are subdirectories of other directories.
-    directories, files = check_for_duplicates(directories=directories, files=files)
-    for file in files:
-        fasta_files.append(file)
-        # process directories and get fastafiles.
-    for dir_name in directories:
-        directory_content = parse_directory(dir_name, file_filter=args.file_filter)
-        for entry in directory_content:
-            os.chdir(entry["directory"])
-            if entry["files"] != [] and entry["directory"] != '':
-                fasta_files.extend(entry["files"])
-    LOGGER.info("Collected the following fasta files:\n %s" % pformat(fasta_files))
-    sequences = parse_fasta_files(fasta_files)
-    LOGGER.info("Parsed the following sequences:\n %s" % pformat(sequences))
-    return sequences
 
 
 def process_program_arguments():
@@ -283,10 +265,11 @@ def process_program_arguments():
 
 
 def run_xpgma():
-    sequences = parse_input()
+    sequences = parse_input(args.input, args.file_filter)
     # perform pairwise sequence alignments
     nw = NeedlemanWunsch()
     alignments = nw.pairwise_alignments(sequences)
+    LOGGER.info("Needleman Wunsch Alignments:\n%s" % "\n".join([str(x) for x in alignments]))
     # init the xpgma
     xpgma = Xpgma(clustering_method=args.mode)
     # create a distance matrix.

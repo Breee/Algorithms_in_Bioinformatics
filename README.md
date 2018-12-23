@@ -77,3 +77,36 @@ use `--file-filter REGEX` to filter out files you want.
 ```
 python3 gotoh.py --input data/test1 --file-filter *.fa
 ```
+
+# XPGMA
+We implemented a commandline tool alongside the UPGMA/WPGMA algorithm.
+Of course you do not have to use it, you can just import the classes you need into your project.
+
+call
+
+```
+python3 xpgma.py --help 
+```
+to see all available arguments.
+
+### Example:
+
+```
+python3 xpgma.py --input data/test1/test1.fa data/test1/test2.fa 
+```
+to process and pairwise align ALL sequences in the files `data/test1/test1.fa` `data/test1/test2.fa`
+The XPMGA algorithm will then calculate a guide tree.
+
+
+You could also just pass `data/test1`, and the program will parse the directory and all files in it.
+```
+python3 xpgma.py --input data/test1 
+```
+
+
+You might only want files with a specific extension. 
+use `--file-filter REGEX` to filter out files you want.
+
+```
+python3 xpgma.py --input data/test1 --file-filter *.fa
+```

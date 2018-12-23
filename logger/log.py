@@ -16,8 +16,8 @@ def color_msg(msg, color_code):
     return color_code + msg + bcolors.ENDC
 
 
-def setup_custom_logger(name, logfile):
-    if logfile is not '':
+def setup_custom_logger(name, logfile=None):
+    if logfile:
         logging.basicConfig(filename=logfile)
     logger_format = '%(asctime)s - %(levelname)s - %(module)s - %(message)s'
     formatter = logging.Formatter(fmt=logger_format)

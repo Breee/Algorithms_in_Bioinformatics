@@ -5,7 +5,7 @@ from Bio.SubsMat import MatrixInfo
 
 from logger.log import setup_custom_logger
 from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, check_for_duplicates, \
-    parse_directory, parse_fasta_files, split_directories_and_files
+    parse_directory, parse_fasta_files, parse_input, split_directories_and_files
 
 LOGGER = setup_custom_logger("nw", logfile="needleman_wunsch.log")
 

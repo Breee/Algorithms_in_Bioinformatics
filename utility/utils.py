@@ -3,8 +3,13 @@ import os
 import pprint
 import re
 from enum import Enum
+from pprint import pformat
 
 from Bio import SeqIO
+
+from logger.log import setup_custom_logger
+
+LOGGER = setup_custom_logger("utils")
 
 
 class Operation(Enum):
@@ -38,14 +43,14 @@ class Alignment(object):
 
 def parse_fasta_files(files):
     """
-    >>> files = []
+    A function which parses a list of files and returns a list of sequences.
+    :param files: a list of files
+    :return: a list of SeqRecord objects
+
+    >>> files = ["../data/test1/test1.fa", "../data/test1/test2.fa"]
     >>> parse_fasta_files(files)
-    [SeqRecord(seq=Seq('AAAA', SingleLetterAlphabet()), id='test1', name='test1', description=' test1', dbxrefs=[]), \
-SeqRecord(seq=Seq('AAAA', SingleLetterAlphabet()), id='test2', name='test2', description='test2', dbxrefs=[])]
-
-
-    :param files:
-    :return:
+    [SeqRecord(seq=Seq('AAAAAA', SingleLetterAlphabet()), id='test1', name='test1', description=' test1', dbxrefs=[]), \
+SeqRecord(seq=Seq('AAAAA', SingleLetterAlphabet()), id='test2', name='test2', description='test2', dbxrefs=[])]
     """
     records = []
     for file in files:
@@ -144,6 +149,29 @@ def matches_file_filter(filename, file_filter=''):
             return False
     else:
         return True
+
+
+def parse_input(input, filter):
+    LOGGER.info("Parsing input: %s" % input)
+    fasta_files = []
+    # split input into files and directories.
+    directories, files = split_directories_and_files(input_list=input)
+    # check if input files are part of the directories to be checked
+    # an  check if directories are subdirectories of other directories.
+    directories, files = check_for_duplicates(directories=directories, files=files)
+    for file in files:
+        fasta_files.append(file)
+        # process directories and get fastafiles.
+    for dir_name in directories:
+        directory_content = parse_directory(dir_name, file_filter=filter)
+        for entry in directory_content:
+            os.chdir(entry["directory"])
+            if entry["files"] != [] and entry["directory"] != '':
+                fasta_files.extend(entry["files"])
+    LOGGER.info("Collected the following fasta files:\n %s" % pformat(fasta_files))
+    sequences = parse_fasta_files(fasta_files)
+    LOGGER.info("Parsed the following sequences:\n %s" % pformat(sequences))
+    return sequences
 
 
 def atoi(text):
@@ -255,5 +283,5 @@ class Result(object):
         self.score = score
 
     def __repr__(self):
-        return "(SEQ1: %s, %s, SEQ2: %s, %s,\n ALIGNMENTS:\n%s,\n SCORE: %s)" % (
+        return "(SEQ1: %s, %s, SEQ2: %s, %s, ALIGNMENTS:%s, SCORE: %s)" % (
             self.seq1_ID, self.seq1, self.seq2_ID, self.seq2, pprint.pformat(self.alignments), self.score)
