@@ -7,7 +7,7 @@ from logger.log import setup_custom_logger
 from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, check_for_duplicates, \
     parse_directory, parse_fasta_files, split_directories_and_files
 
-LOGGER = setup_custom_logger("nw", logfile="gotoh.log")
+LOGGER = setup_custom_logger("got", logfile="gotoh.log")
 
 import argparse
 import os

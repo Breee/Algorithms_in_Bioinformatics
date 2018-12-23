@@ -21,7 +21,7 @@ class NeedlemanWunsch(object):
 
     def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=6,
                  substitution_matrix=MatrixInfo.blosum62,
-                 similarity=True):
+                 similarity=True, complete_traceback=False):
         LOGGER.info("Initialzing needleman-wunsch.")
         sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"}
         self.alphabet = Alphabet(sigma)
@@ -37,6 +37,7 @@ class NeedlemanWunsch(object):
         self.desired_traceback = TracebackCell(None, None)
         # All tracebacks
         self.tracebacks = list()
+        self.complete_traceback = complete_traceback
         # The scoring matrix, which is used to calculate the optimal alignment scores.
         self.scoring_matrix = numpy.zeros(shape=(1, 1))
         if similarity:
@@ -272,17 +273,16 @@ class NeedlemanWunsch(object):
         combinations = list(itertools.combinations(sequences, 2))
         total = len(combinations)
         current = 1
-        for x, y in combinations:
+        for x, y in sorted(combinations, key=lambda x: x[0].id):
             LOGGER.info(" Alignment %d / %d (SEQ1: %s, SEQ2: %s)" % (current, total, x.seq, y.seq))
-            res = self.run(x, y, complete_traceback=args.all)
+            res = self.run(x, y, complete_traceback=self.complete_traceback)
             results.append(res)
             LOGGER.info("SEQUENCE PAIR:\nSEQ1 ID:%s SEQ:%s\n"
                         "SEQ2 ID:%s SEQ:%s" % (x.id, x.seq, y.id, y.seq))
             LOGGER.info("SCORE: %s" % res.score)
             LOGGER.info("PRINTING ALIGNMENT(S): ")
             for alignment in res.alignments:
-                LOGGER.info("ALIGNMENT\n%s\n%s" % (alignment.sequence1, alignment.sequence2))
-                print()
+                LOGGER.info("ALIGNMENT\n%s\n%s\n" % (alignment.sequence1, alignment.sequence2))
             current += 1
         return results
 
@@ -336,7 +336,7 @@ def run_needleman():
     elif len(sequences) >= 2:
         # init the needleman
         nw = NeedlemanWunsch(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                             similarity=(not args.distance))
+                             similarity=(not args.distance), complete_traceback=args.all)
         results = nw.pairwise_alignments(sequences)
         LOGGER.info("SUMMARY:\n%s" % pformat(results))
 

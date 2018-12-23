@@ -1,5 +1,6 @@
 import fnmatch
 import os
+import pprint
 import re
 from enum import Enum
 
@@ -17,6 +18,11 @@ class Operation(Enum):
 class ScoringType(Enum):
     SIMILARITY = 0,
     DISTANCE = 1
+
+
+class Clustering(Enum):
+    UPGMA = 0,
+    WPGMA = 1
 
 
 class Alignment(object):
@@ -250,4 +256,4 @@ class Result(object):
 
     def __repr__(self):
         return "(SEQ1: %s, %s, SEQ2: %s, %s,\n ALIGNMENTS:\n%s,\n SCORE: %s)" % (
-            self.seq1_ID, self.seq1, self.seq2_ID, self.seq2, pformat(self.alignments), self.score)
+            self.seq1_ID, self.seq1, self.seq2_ID, self.seq2, pprint.pformat(self.alignments), self.score)
