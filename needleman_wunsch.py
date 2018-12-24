@@ -270,6 +270,9 @@ class NeedlemanWunsch(object):
                       alignments=res)
 
     def pairwise_alignments(self, sequences):
+        if len(sequences) < 2:
+            LOGGER.warn("We received not enough sequences. Make sure you called the program correctly.")
+            exit(1)
         results = []
         LOGGER.info("You provided a total of %d sequences, performing pairwise aligments." % len(sequences))
         combinations = list(itertools.combinations(sequences, 2))
@@ -309,15 +312,11 @@ def process_program_arguments():
 
 def run_needleman():
     sequences = parse_input(args.input, args.file_filter)
-    if len(sequences) < 2:
-        LOGGER.warn("We received not enough sequences. Make sure you called the program correctly.")
-        exit(1)
-    elif len(sequences) >= 2:
-        # init the needleman
-        nw = NeedlemanWunsch(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                             similarity=(not args.distance), complete_traceback=args.all, verbose=args.verbose)
-        results = nw.pairwise_alignments(sequences)
-        LOGGER.info("SUMMARY:\n%s" % pformat(results))
+    # init the needleman
+    nw = NeedlemanWunsch(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
+                         similarity=(not args.distance), complete_traceback=args.all, verbose=args.verbose)
+    results = nw.pairwise_alignments(sequences)
+    LOGGER.info("SUMMARY:\n%s" % pformat(results))
 
 
 def main():

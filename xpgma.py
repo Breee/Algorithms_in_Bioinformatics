@@ -1,6 +1,6 @@
 from logger.log import setup_custom_logger
 from needleman_wunsch import NeedlemanWunsch
-from utility.utils import Clustering, parse_input
+from utility.utils import Clustering, parse_fasta_files, parse_input
 
 LOGGER = setup_custom_logger("xpgma", logfile="xpgma.log")
 
@@ -77,12 +77,12 @@ class Xpgma(object):
     def create_distance_matrix(self, alignments):
         """
         >>> nw = NeedlemanWunsch()
-        >>> sequences = parse_fasta_files(["./data/xpgma/test5.fa"])
+        >>> sequences = parse_fasta_files(["./data/xpgma/xpgma1.fa"])
         >>> alignments = nw.pairwise_alignments(sequences)
         >>> xpgma = Xpgma()
         >>> xpgma.create_distance_matrix(alignments)
         >>> xpgma.distances
-        {'A': {'B': 4.0, 'C': 0.0}, 'B': {'A': 4.0, 'C': -3.0}, 'C': {'A': 0.0, 'B': -3.0}}
+        {'A': {'B': 4.0, 'C': 4.0}, 'B': {'A': 4.0, 'C': 4.0}, 'C': {'A': 4.0, 'B': 4.0}}
 
         :param alignments:
         :return:
@@ -204,7 +204,7 @@ class Xpgma(object):
         :return: void
 
         >>> nw = NeedlemanWunsch()
-        >>> sequences = parse_fasta_files(["./data/xpgma/test5.fa"])
+        >>> sequences = parse_fasta_files(["./data/xpgma/xpgma1.fa"])
         >>> alignments = nw.pairwise_alignments(sequences)
         >>> xpgma = Xpgma()
         >>> xpgma.create_distance_matrix(alignments)
