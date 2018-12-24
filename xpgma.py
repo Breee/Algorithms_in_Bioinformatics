@@ -1,7 +1,6 @@
 from logger.log import setup_custom_logger
 from needleman_wunsch import NeedlemanWunsch
-from utility.utils import Clustering, parse_fasta_files, \
-    parse_input
+from utility.utils import Clustering, parse_input
 
 LOGGER = setup_custom_logger("xpgma", logfile="xpgma.log")
 
@@ -56,7 +55,7 @@ class Node(object):
         if self.children == None:  # Leaf
             res.append((self.name, self.cost))
         else:
-            res.append(([x.newick for x in self.children], self.cost))
+            res.append(([x.newick() for x in self.children], self.cost))
         return tuple(res)
 
 
@@ -267,7 +266,7 @@ def process_program_arguments():
 def run_xpgma():
     sequences = parse_input(args.input, args.file_filter)
     # perform pairwise sequence alignments
-    nw = NeedlemanWunsch()
+    nw = NeedlemanWunsch(verbose=args.verbose)
     alignments = nw.pairwise_alignments(sequences)
     LOGGER.info("Needleman Wunsch Alignments:\n%s" % "\n".join([str(x) for x in alignments]))
     # init the xpgma
@@ -294,6 +293,8 @@ if __name__ == '__main__':
                         help='A regex to define a filter, which will be applied to the files parsed.')
     parser.add_argument('-m', '--mode', type=str, default="UPGMA",
                         help='UPGMA | WPGMA')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                        help='verbose output.')
 
     args = parser.parse_args()
     main()

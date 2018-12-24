@@ -1,16 +1,16 @@
+import logging
 from pprint import pformat
 
 import numpy
 from Bio.SubsMat import MatrixInfo
 
 from logger.log import setup_custom_logger
-from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, check_for_duplicates, \
-    parse_directory, parse_fasta_files, parse_input, split_directories_and_files
+from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, parse_fasta_files, \
+    parse_input
 
 LOGGER = setup_custom_logger("nw", logfile="needleman_wunsch.log")
 
 import argparse
-import os
 import itertools
 
 
@@ -21,7 +21,7 @@ class NeedlemanWunsch(object):
 
     def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=6,
                  substitution_matrix=MatrixInfo.blosum62,
-                 similarity=True, complete_traceback=False):
+                 similarity=True, complete_traceback=False, verbose=False):
         LOGGER.info("Initialzing needleman-wunsch.")
         sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"}
         self.alphabet = Alphabet(sigma)
@@ -48,6 +48,8 @@ class NeedlemanWunsch(object):
             self.gap_penalty = abs(gap_penalty)
             raise NotImplementedError("DISTANCE is not implemented yet.")
         self.alignments = []
+        if verbose:
+            LOGGER.level = logging.DEBUG
         LOGGER.info("Scoring-Type: %s" % self.scoring_type)
         LOGGER.debug("Substitution Matrix:\n %s" % pformat(self.substitution_matrix))
         LOGGER.info("Gap Penalty: %d" % self.gap_penalty)
@@ -169,7 +171,7 @@ class NeedlemanWunsch(object):
                                         )
         return tb_cell
 
-    def explore(self, traceback_cell: TracebackCell, current_traceback=list()):
+    def explore(self, traceback_cell: TracebackCell, current_traceback=[]):
         """
         Function to explore a TracebackCell recursively to obtain all tracebacks to the root.
         :param traceback_cell: TracebackCell from which you want to start backtracking.
@@ -277,36 +279,13 @@ class NeedlemanWunsch(object):
             LOGGER.info(" Alignment %d / %d (SEQ1: %s, SEQ2: %s)" % (current, total, x.seq, y.seq))
             res = self.run(x, y, complete_traceback=self.complete_traceback)
             results.append(res)
-            LOGGER.info("SEQUENCE PAIR:\nSEQ1 ID:%s SEQ:%s\n"
-                        "SEQ2 ID:%s SEQ:%s" % (x.id, x.seq, y.id, y.seq))
+            LOGGER.info("SEQUENCE PAIR:(ID:%s SEQ:%s) ~ (ID:%s SEQ:%s)" % (x.id, x.seq, y.id, y.seq))
             LOGGER.info("SCORE: %s" % res.score)
             LOGGER.info("PRINTING ALIGNMENT(S): ")
-            for alignment in res.alignments:
-                LOGGER.info("ALIGNMENT\n%s\n%s\n" % (alignment.sequence1, alignment.sequence2))
+            for i, alignment in enumerate(res.alignments):
+                LOGGER.info("%d. ALIGNMENT: (%s, %s)" % (i + 1, alignment.sequence1, alignment.sequence2))
             current += 1
         return results
-
-
-def parse_input():
-    fasta_files = []
-    # split input into files and directories.
-    directories, files = split_directories_and_files(input_list=args.input)
-    # check if input files are part of the directories to be checked
-    # an  check if directories are subdirectories of other directories.
-    directories, files = check_for_duplicates(directories=directories, files=files)
-    for file in files:
-        fasta_files.append(file)
-        # process directories and get fastafiles.
-    for dir_name in directories:
-        directory_content = parse_directory(dir_name, file_filter=args.file_filter)
-        for entry in directory_content:
-            os.chdir(entry["directory"])
-            if entry["files"] != [] and entry["directory"] != '':
-                fasta_files.extend(entry["files"])
-    LOGGER.info("Collected the following fasta files:\n %s" % pformat(fasta_files))
-    sequences = parse_fasta_files(fasta_files)
-    LOGGER.info("Parsed the following sequences:\n %s" % pformat(sequences))
-    return sequences
 
 
 def process_program_arguments():
@@ -329,14 +308,14 @@ def process_program_arguments():
 
 
 def run_needleman():
-    sequences = parse_input()
+    sequences = parse_input(args.input, args.file_filter)
     if len(sequences) < 2:
         LOGGER.warn("We received not enough sequences. Make sure you called the program correctly.")
         exit(1)
     elif len(sequences) >= 2:
         # init the needleman
         nw = NeedlemanWunsch(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                             similarity=(not args.distance), complete_traceback=args.all)
+                             similarity=(not args.distance), complete_traceback=args.all, verbose=args.verbose)
         results = nw.pairwise_alignments(sequences)
         LOGGER.info("SUMMARY:\n%s" % pformat(results))
 
@@ -363,6 +342,8 @@ if __name__ == '__main__':
                         help='Substitution Matrix (BLOSSUM | PAM | NONE) default is BLOSSUM')
     parser.add_argument('-d', '--distance', action='store_true', default=False,
                         help='Calculate DISTANCE instead of SIMILARITY')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                        help='verbose output.')
 
     args = parser.parse_args()
     main()

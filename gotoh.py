@@ -13,6 +13,7 @@ import argparse
 import os
 import itertools
 import math
+import logging
 
 
 class Gotoh(object):
@@ -22,7 +23,7 @@ class Gotoh(object):
 
     def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=11, gap_extend=1,
                  substitution_matrix=MatrixInfo.blosum62,
-                 similarity=True):
+                 similarity=True, verbose=False):
         LOGGER.info("Initialzing gotoh.")
         sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"}
         self.alphabet = Alphabet(sigma)
@@ -53,6 +54,8 @@ class Gotoh(object):
             self.gap_extend = abs(gap_extend)
             raise NotImplementedError("DISTANCE is not implemented yet.")
         self.alignments = []
+        if verbose:
+            LOGGER.level = logging.DEBUG
         LOGGER.info("Scoring-Type: %s" % self.scoring_type)
         LOGGER.debug("Substitution Matrix:\n %s" % pformat(self.substitution_matrix))
         LOGGER.info("Gap Penalty: %d" % self.gap_penalty)
@@ -412,7 +415,8 @@ def run_gotoh():
     elif len(sequences) >= 2:
         # init the gotoh
         got = Gotoh(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                    similarity=(not args.distance), match_scoring=args.match, mismatch_scoring=args.mismatch)
+                    similarity=(not args.distance), match_scoring=args.match, mismatch_scoring=args.mismatch,
+                    verbose=args.verbose)
         results = got.pairwise_alignments(sequences)
         LOGGER.info("SUMMARY:\n%s" % pformat(results))
 
@@ -431,6 +435,8 @@ if __name__ == '__main__':
                         help='A file, a directory or multiple directories. directories are processed recursively.')
     parser.add_argument('--file-filter', type=str, default='',
                         help='A regex to define a filter, which will be applied to the files parsed.')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                        help='verbose output.')
     parser.add_argument('-a', '--all', action='store_true', default=False,
                         help='Return ALL optimal alignments.')
     parser.add_argument('-g', '--gap_penalty', type=float, default=11,
