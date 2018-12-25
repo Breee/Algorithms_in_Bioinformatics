@@ -42,8 +42,10 @@ class Node(object):
 
     def __repr__(self):
         res = ""
-        if self.children == None:  # Leaf
+        if self.children is None:  # Leaf
             res += "%s:%.2f" % (self.name, self.cost)
+        elif self.cost is None:
+            res += "%s:NONE" % self.name
         else:
             res = "("
             res += ",".join([str(x) for x in self.children])
@@ -72,6 +74,8 @@ class Xpgma(object):
             self.clustering_method = Clustering.UPGMA
         elif clustering_method == "WPGMA":
             self.clustering_method = Clustering.WPGMA
+        else:
+            self.clustering_method = Clustering.UPGMA
         self.guidetree = GuideTree()
 
     def create_distance_matrix(self, alignments):
@@ -209,10 +213,9 @@ class Xpgma(object):
         >>> xpgma = Xpgma()
         >>> xpgma.create_distance_matrix(alignments)
         >>> xpgma.calculate_guide_tree()
-        ((B:-1.50,C:-1.50):2.50,A:1.00)
+        ((A:2.00,B:2.00):0.00,C:2.00)
         """
         while len(self.distances) > 1:
-            print(self.distances)
             # find the minimum distance.
             minimum, cluster1, cluster2 = self.get_minimum_distance(self.distances)
             # merge the closest clusters.
