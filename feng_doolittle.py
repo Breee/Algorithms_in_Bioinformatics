@@ -1,50 +1,93 @@
-from pprint import pformat
-
 from logger.log import setup_custom_logger
-from utility.utils import check_for_duplicates, \
-    parse_directory, parse_fasta_files, split_directories_and_files
+from utility.utils import Result, count_gaps_in_pairwise_alignment, count_occurences_symbol_in_word, parse_input
 
-LOGGER = setup_custom_logger("got", logfile="gotoh.log")
+LOGGER = setup_custom_logger("feng", logfile="feng.log")
 
 import argparse
-import os
+import math
+from needleman_wunsch import NeedlemanWunsch
+from xpgma import Xpgma
+import copy
 
 
 class FengDoolittle(object):
     """
     Class which implements the feng doolittle
-    1. Calculate the 38#38 pairwise alignment scores, and convert them to distances.
-    2. Use an incremental clustering algorithm (Fitch and Margoliash, 1967 [3]) to construct a tree from the distances.
-    3. Traverse the nodes in their order of addition to the tree, repeatedly align the child nodes (sequences or alignments).
+    1. Calculate the pairwise alignment scores, and convert them to distances.
+    2. Use a clustering algorithm to construct a tree from the distances.
+    3. Traverse the nodes in their order of addition to the tree, repeatedly align the child nodes (sequences or
+    alignments).
     Features of this heuristic:
     - Highest scoring pairwise alignment determines the alignment to two groups.
     - "Once a gap, always a gap": replace gaps in alignments by a neutral character.
     """
 
-    def __init__(self, similarity=True, verbose=False):
+    def __init__(self, verbose=False):
         pass
 
+    def convert_to_evolutionary_distances(self, pairwise_alignment_result: Result) -> float:
+        """Converts similarity score from a pairwise alignment to a distance score
+        using approximation algorithm
 
-def parse_input():
-    fasta_files = []
-    # split input into files and directories.
-    directories, files = split_directories_and_files(input_list=args.input)
-    # check if input files are part of the directories to be checked
-    # an  check if directories are subdirectories of other directories.
-    directories, files = check_for_duplicates(directories=directories, files=files)
-    for file in files:
-        fasta_files.append(file)
-        # process directories and get fastafiles.
-    for dir_name in directories:
-        directory_content = parse_directory(dir_name, file_filter=args.file_filter)
-        for entry in directory_content:
-            os.chdir(entry["directory"])
-            if entry["files"] != [] and entry["directory"] != '':
-                fasta_files.extend(entry["files"])
-    LOGGER.info("Collected the following fasta files:\n %s" % pformat(fasta_files))
-    sequences = parse_fasta_files(fasta_files)
-    LOGGER.info("Parsed the following sequences:\n %s" % pformat(sequences))
-    return sequences
+        D(a,b) = - log(S_{a,b}^{eff})
+        S_{a,b}^{eff} = (S(a,b) - S_{rand}) / (S_{a,b}^{max} - S_{rand})
+        S_{rand} = (1/|A|) * (sum_{x,y in \Sigma \times \Sigma} S(x,y) * N_a(x) * N_b(y)) + gaps(A) * S(-,*)
+        S_{a,b}^{max} = (S(a,a) + S(b,b)) / 2
+        """
+        alignment = pairwise_alignment_result.alignments[0]
+        LOGGER.info("Converting similarity to evolutionary distances.")
+        LOGGER.info("Alignment: %s" % alignment)
+
+        seq1 = copy.deepcopy(alignment.sequence1)
+        seq1.seq = seq1.seq.replace("-", "")
+
+        seq2 = copy.deepcopy(alignment.sequence2)
+        seq2.seq = seq2.seq.replace("-", "")
+
+        nw = NeedlemanWunsch()
+        s_ab = nw.run(seq1, seq2)
+        s_aa = nw.run(seq1, seq1)
+        s_bb = nw.run(seq2, seq2)
+
+        s_max = (s_aa.score + s_bb.score) / 2
+        s_rand = (1 / len(alignment.sequence1)) * \
+                 sum([nw.score(nw.alphabet.letters[i],
+                               nw.alphabet.letters[j])
+                      * count_occurences_symbol_in_word(seq1.seq, nw.alphabet.letters[i])
+                      * count_occurences_symbol_in_word(seq2.seq, nw.alphabet.letters[j])
+                      for i in range(len(nw.alphabet.letters)) for j in range(len(nw.alphabet.letters))]) \
+                 + count_gaps_in_pairwise_alignment(alignment) * nw.gap_penalty
+
+        # prevent division by zero.
+        if s_max == s_rand:
+            s_rand = s_rand - 0.0001
+
+        S_eff = (s_ab.score - s_rand) / (s_max - s_rand)
+
+        # negative values make no sense.
+        if S_eff <= 0.0:
+            score = 1
+        else:
+            score = - math.log(S_eff)
+        LOGGER.info("New score: %.5f" % score)
+        return score
+
+    def run(self, sequences):
+        # init the xpgma
+        # perform pairwise sequence alignments
+        nw = NeedlemanWunsch(verbose=args.verbose)
+        alignments = nw.pairwise_alignments(sequences)
+        LOGGER.info("Needleman Wunsch Alignments:\n%s" % "\n".join([str(x) for x in alignments]))
+        # Convert the scores to approximate pairwise evolutionary distances.
+        for alignment in alignments:
+            alignment.score = self.convert_to_evolutionary_distances(alignment)
+        # 2. Construct a guide tree
+        xpgma = Xpgma()
+        tree = xpgma.run(alignments)
+        # 3. Start from the first node that has been added to the guide tree and align the child nodes
+        
+        # 4. Repeat step 3. For all other nodes in the order in which they were added to the tree.
+        # Do this until all sequences have been aligned.
 
 
 def process_program_arguments():
@@ -56,12 +99,13 @@ def process_program_arguments():
 
 
 def run_feng_doolittle():
-    sequences = parse_input()
+    sequences = parse_input(args.input, args.file_filter)
     if len(sequences) < 2:
         LOGGER.warn("We received not enough sequences. Make sure you called the program correctly.")
         exit(1)
     elif len(sequences) >= 2:
-        pass
+        feng = FengDoolittle()
+        feng.run(sequences)
 
 
 def main():
