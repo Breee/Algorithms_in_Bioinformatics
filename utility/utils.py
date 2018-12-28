@@ -6,6 +6,7 @@ from enum import Enum
 from pprint import pformat
 
 from Bio import SeqIO
+from boltons.setutils import IndexedSet
 
 from logger.log import setup_custom_logger
 
