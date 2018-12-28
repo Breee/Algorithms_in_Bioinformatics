@@ -1,6 +1,6 @@
 from logger.log import setup_custom_logger
 from needleman_wunsch import NeedlemanWunsch
-from utility.utils import Clustering, parse_fasta_files, parse_input
+from utility.utils import Clustering, parse_input
 
 LOGGER = setup_custom_logger("xpgma", logfile="xpgma.log")
 
@@ -117,6 +117,8 @@ class Xpgma(object):
         minimum, cluster1, cluster2 = None, None, None
         for c1, dists in distances.items():
             for c2, dist in dists.items():
+                if c1 == c2:
+                    continue
                 if not minimum or dist < minimum:
                     minimum = dist
                     cluster1 = c1
