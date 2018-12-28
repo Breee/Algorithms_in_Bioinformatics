@@ -253,6 +253,13 @@ class Xpgma(object):
         if finish:
             self.guidetree.root = self.guidetree.nodes[cluster1 + cluster2]
 
+    def run(self, alignments):
+        # create a distance matrix.
+        self.create_distance_matrix(alignments)
+        # calculate the guide tree
+        tree = self.calculate_guide_tree()
+        return tree
+
 
 def process_program_arguments():
     if not args.input:
