@@ -4,13 +4,12 @@ import numpy
 from Bio.SubsMat import MatrixInfo
 
 from logger.log import setup_custom_logger
-from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, check_for_duplicates, \
-    parse_directory, parse_fasta_files, split_directories_and_files
+from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, parse_fasta_files, \
+    parse_input
 
 LOGGER = setup_custom_logger("got", logfile="gotoh.log")
 
 import argparse
-import os
 import itertools
 import math
 import logging
@@ -366,28 +365,6 @@ class Gotoh(object):
         return results
 
 
-def parse_input():
-    fasta_files = []
-    # split input into files and directories.
-    directories, files = split_directories_and_files(input_list=args.input)
-    # check if input files are part of the directories to be checked
-    # an  check if directories are subdirectories of other directories.
-    directories, files = check_for_duplicates(directories=directories, files=files)
-    for file in files:
-        fasta_files.append(file)
-        # process directories and get fastafiles.
-    for dir_name in directories:
-        directory_content = parse_directory(dir_name, file_filter=args.file_filter)
-        for entry in directory_content:
-            os.chdir(entry["directory"])
-            if entry["files"] != [] and entry["directory"] != '':
-                fasta_files.extend(entry["files"])
-    LOGGER.info("Collected the following fasta files:\n %s" % pformat(fasta_files))
-    sequences = parse_fasta_files(fasta_files)
-    LOGGER.info("Parsed the following sequences:\n %s" % pformat(sequences))
-    return sequences
-
-
 def process_program_arguments():
     if not args.input:
         LOGGER.critical(
@@ -408,7 +385,7 @@ def process_program_arguments():
 
 
 def run_gotoh():
-    sequences = parse_input()
+    sequences = parse_input(args.input, args.file_filter)
     if len(sequences) < 2:
         LOGGER.warn("We received not enough sequences. Make sure you called the program correctly.")
         exit(1)
