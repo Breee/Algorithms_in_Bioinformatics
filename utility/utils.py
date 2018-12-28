@@ -188,31 +188,29 @@ def natural_keys(text):
     return [atoi(c) for c in re.split('(\d+)', text)]
 
 
-def count_occurences_symbol_in_seq(seq, symbol):
-    """Counts the number of occurences of symbol in seq
-    Args:
-        seq (str): A sequence
-        symbol (char): A character
+def count_occurences_symbol_in_word(word, symbol):
+    """
+
+    :param word:
+    :param symbol:
+    :return:
     """
     count = 0
-    for x in seq:
+    for x in word:
         if x == symbol:
             count += 1
     return count
 
 
-def count_gaps_in_pairwise_alignment(pairwise_alignment):
-    """Counts the number of gaps in the given pairwise alignment. Since Feng-Dootlittle
-    exchanges gaps with special character "X" we also need to take care about this special
-    character
-    Args:
-        pairwise_alignment (list(str)): A 2 element list containing a gapped sequences.
-                                        Therefore the lengths are equal
+def count_gaps_in_pairwise_alignment(pairwise_alignment: Alignment):
+    """
 
+    :param pairwise_alignment:
+    :return:
     """
     count = 0
-    for i in range(len(pairwise_alignment[0])):
-        if pairwise_alignment[0][i] in ["-", "X"] or pairwise_alignment[1][i] in ["-", "X"]:
+    for i in range(len(pairwise_alignment.sequence1)):
+        if pairwise_alignment.sequence1[i] in ["-", "X"] or pairwise_alignment.sequence2[i] in ["-", "X"]:
             count += 1
     return count
 
