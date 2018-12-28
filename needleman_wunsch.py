@@ -2,11 +2,11 @@ import logging
 from pprint import pformat
 
 import numpy
+from Bio.SeqRecord import SeqRecord
 from Bio.SubsMat import MatrixInfo
 
 from logger.log import setup_custom_logger
-from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, parse_fasta_files, \
-    parse_input
+from utility.utils import Alignment, Alphabet, Operation, Result, ScoringType, TracebackCell, parse_input
 
 LOGGER = setup_custom_logger("nw", logfile="needleman_wunsch.log")
 
@@ -193,13 +193,15 @@ class NeedlemanWunsch(object):
         self.tracebacks = self.explore(self.desired_traceback, [])
         LOGGER.info("Done.")
 
-    def generate_alignments(self, sequence1, sequence2, all=False):
+    def generate_alignments(self, seq1: SeqRecord, seq2: SeqRecord, all=False):
         """
         Function which creates all optimal alignments.
         :param sequence1:
         :param sequence2:
         :return:
         """
+        sequence1 = seq1.seq
+        sequence2 = seq2.seq
         LOGGER.info("Generating Alignments.")
         alignments = []
         for traceback in self.tracebacks:
@@ -208,27 +210,31 @@ class NeedlemanWunsch(object):
                 return
             LOGGER.debug("Length of tb: %d" % len(traceback))
             LOGGER.debug("tb: %s" % traceback)
-            seq1 = ""
-            seq2 = ""
+            al_seq1 = ""
+            al_seq2 = ""
             i = 0
             j = 0
             for op in traceback:
                 if op == Operation.MATCH or op == Operation.MISMATCH:
-                    seq1 += sequence1[i]
-                    seq2 += sequence2[j]
+                    al_seq1 += sequence1[i]
+                    al_seq2 += sequence2[j]
                     i += 1
                     j += 1
                 elif op == Operation.DELETION:
-                    seq1 += "-"
-                    seq2 += sequence2[j]
+                    al_seq1 += "-"
+                    al_seq2 += sequence2[j]
                     j += 1
                 elif op == Operation.INSERTION:
-                    seq1 += sequence1[i]
-                    seq2 += "-"
+                    al_seq1 += sequence1[i]
+                    al_seq2 += "-"
                     i += 1
-            alignments.append(Alignment(sequence1=seq1, sequence2=seq2,
-                                        operations=[],
-                                        score=self.desired_traceback.score))
+            assert len(al_seq1) == len(al_seq2)
+            alignments.append(
+                    Alignment(sequence1=SeqRecord(seq=al_seq1, id=seq1.id, name=seq1.name),
+                              sequence2=SeqRecord(seq=al_seq2, id=seq2.id, name=seq2.name),
+                              operations=[],
+                              score=self.desired_traceback.score))
+
         self.alignments = alignments
         return
 
@@ -248,11 +254,12 @@ class NeedlemanWunsch(object):
         [Alignment: (ACA, A-A), Score: 2],
          SCORE: 2.0)
         """
+        LOGGER.info("Running on sequences: (%s, %s)" % (seq1.seq, seq2.seq))
         self.alphabet.check_words({seq1.seq, seq2.seq})
         self.calculate_scoring_matrix(seq1.seq, seq2.seq)
         self.desired_traceback = self.traceback_matrix[-1][-1]
         self.split_traceback_set()
-        self.generate_alignments(sequence1=seq1.seq, sequence2=seq2.seq, all=complete_traceback)
+        self.generate_alignments(seq1=seq1, seq2=seq2, all=complete_traceback)
 
         res = None
         if self.alignments:
@@ -286,7 +293,7 @@ class NeedlemanWunsch(object):
             LOGGER.info("SCORE: %s" % res.score)
             LOGGER.info("PRINTING ALIGNMENT(S): ")
             for i, alignment in enumerate(res.alignments):
-                LOGGER.info("%d. ALIGNMENT: (%s, %s)" % (i + 1, alignment.sequence1, alignment.sequence2))
+                LOGGER.info("%d. ALIGNMENT: (%s, %s)" % (i + 1, alignment.sequence1.seq, alignment.sequence2.seq))
             current += 1
         return results
 
