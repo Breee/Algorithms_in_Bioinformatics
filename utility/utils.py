@@ -226,7 +226,7 @@ class NotInAlphabetError(Exception):
 class Alphabet(object):
 
     def __init__(self, letters):
-        self.letters = set(letters)
+        self.letters = IndexedSet(letters)
 
     def is_in_alphabet(self, word):
         letter_set = set(word)
