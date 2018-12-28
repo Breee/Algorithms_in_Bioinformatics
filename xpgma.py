@@ -11,6 +11,7 @@ class GuideTree(object):
     def __init__(self):
         self.nodes = dict()
         self.root = Node("root", None)
+        self.order = []
 
     def __repr__(self):
         tree = "("
@@ -229,6 +230,7 @@ class Xpgma(object):
         self.guidetree.nodes[cluster1 + cluster2] = Node(cluster1 + cluster2, cost=None,
                                                          children=[self.guidetree.nodes[cluster1],
                                                                    self.guidetree.nodes[cluster2]])
+        self.guidetree.order.append(cluster1 + cluster2)
         # Iterate over the clusters.
         clusters = [cluster1, cluster2]
         for cluster in clusters:
