@@ -42,6 +42,15 @@ class Alignment(object):
         return "Alignment: (%s, %s), Score: %d" % (self.sequence1.seq, self.sequence2.seq, self.score)
 
 
+class MultiAlignment(object):
+    def __init__(self, sequences: list, score):
+        self.sequences = sequences
+        self.score = score
+
+    def __repr__(self):
+        return "Alignment: %s, , Score: %d" % (self.sequences, self.score)
+
+
 def parse_fasta_files(files):
     """
     A function which parses a list of files and returns a list of sequences.
