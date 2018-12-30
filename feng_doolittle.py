@@ -1,13 +1,15 @@
 from logger.log import setup_custom_logger
-from utility.utils import Result, count_gaps_in_pairwise_alignment, count_occurences_symbol_in_word, parse_input
+from utility.utils import MultiAlignment, Result, count_gaps_in_pairwise_alignment, \
+    count_occurences_symbol_in_word, parse_input, replace_with_neutral_symbol
 
 LOGGER = setup_custom_logger("feng", logfile="feng.log")
 
 import argparse
 import math
 from needleman_wunsch import NeedlemanWunsch
-from xpgma import Xpgma
+from xpgma import Xpgma, Node, GuideTree
 import copy
+import difflib
 
 
 class FengDoolittle(object):
@@ -107,6 +109,7 @@ class FengDoolittle(object):
                 # the score is the addition of all pairwise scores.
                 overall_score += result.score
         return [best_alignment.sequence1, best_alignment.sequence2], index1, index2, best_score, overall_score
+
     def operation1(self, leaf1: Node, leaf2: Node) -> MultiAlignment:
         """
         Compute best pairwise alignment,
@@ -261,9 +264,12 @@ class FengDoolittle(object):
         xpgma = Xpgma()
         tree = xpgma.run(alignments)
         # 3. Start from the first node that has been added to the guide tree and align the child nodes
-        
-        # 4. Repeat step 3. For all other nodes in the order in which they were added to the tree.
+        # For all other nodes in the order in which they were added to the tree.
         # Do this until all sequences have been aligned.
+        msa = self.compute_msa(tree)
+        print(msa)
+        res_str = ",".join([x.seq for x in msa.sequences])
+        LOGGER.info("GENERATED MSA:\nSCORE:%f\nMSA:%s" % (msa.score, res_str))
 
 
 def process_program_arguments():
