@@ -28,12 +28,13 @@ class GuideTree(object):
 
 
 class Node(object):
-    def __init__(self, name, cost, children=None, parent=None):
+    def __init__(self, name, cost, children=None, parent=None, sequence=None):
         self.name = name
         self.children = children
         self.parent = parent
         self.cost = cost
         self.cost_until_here = None
+        self.sequence = sequence
 
     def is_leaf(self):
         return self.children is None
@@ -98,10 +99,10 @@ class Xpgma(object):
             id2 = el.seq2_ID
             if id1 not in self.distances:
                 self.distances[id1] = dict()
-                self.guidetree.nodes[id1] = Node(id1, cost=None)
+                self.guidetree.nodes[id1] = Node(id1, cost=None, sequence=el.seq1)
             if id2 not in self.distances:
                 self.distances[id2] = dict()
-                self.guidetree.nodes[id2] = Node(id2, cost=None)
+                self.guidetree.nodes[id2] = Node(id2, cost=None, sequence=el.seq2)
             self.distances[id1][id2] = el.score
             self.distances[id2][id1] = el.score
         LOGGER.info("Distances collected: %s" % self.distances)
