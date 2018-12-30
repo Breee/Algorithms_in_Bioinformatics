@@ -86,6 +86,27 @@ class FengDoolittle(object):
                 best_alignment = result.alignments[0]
                 index = i
         return [best_alignment.sequence1, best_alignment.sequence2], index, best_score
+
+    def compute_best_alignment_many_to_many(self, alignment1: MultiAlignment, alignment2: MultiAlignment):
+        best_alignment = None
+        index1 = None
+        index2 = None
+        best_score = None
+        overall_score = 0
+        sequences1 = alignment1.sequences
+        sequences2 = alignment2.sequences
+        nw = NeedlemanWunsch()
+        for i, seq1 in enumerate(sequences1):
+            for j, seq2 in enumerate(sequences2):
+                result = nw.run(seq1, seq2)
+                if best_score is None or result.score > best_score:
+                    best_score = result.score
+                    best_alignment = result.alignments[0]
+                    index1 = i
+                    index2 = j
+                # the score is the addition of all pairwise scores.
+                overall_score += result.score
+        return [best_alignment.sequence1, best_alignment.sequence2], index1, index2, best_score, overall_score
     def run(self, sequences):
         # init the xpgma
         # perform pairwise sequence alignments
