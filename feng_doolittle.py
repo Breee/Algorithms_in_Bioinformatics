@@ -217,6 +217,29 @@ class FengDoolittle(object):
         # add new best_alignment.
         new_alignment = MultiAlignment(sequences=new_sequences, score=overall_score)
         return new_alignment
+
+    def traverse(self, node: Node):
+        if node.is_leaf():
+            return node.sequence
+        else:
+            child1 = node.children[0]
+            child2 = node.children[1]
+            # Case 1: Both children are leaf nodes
+            # Apply operation 1 on the sequences returned by the leafs and return the alignment
+            if child1.is_leaf() and child2.is_leaf():
+                return self.operation1(child1, child2)
+            # Case 2: One Child is leaf and one node is inner node
+            # Apply operation 2 on the sequence and the alignment and return the
+            # alignment
+            elif child1.is_leaf():
+                return self.operation2(child1, self.traverse(child2))
+            elif child2.is_leaf():
+                return self.operation2(child2, self.traverse(child1))
+            # Case 3: Both Children are inner nodes
+            # Apply operation 3 on the alignments and return the alignment
+            else:
+                return self.operation3(self.traverse(child1), self.traverse(child2))
+
     def run(self, sequences):
         # init the xpgma
         # perform pairwise sequence alignments
