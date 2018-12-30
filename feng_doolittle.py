@@ -130,6 +130,39 @@ class FengDoolittle(object):
                                          score=result.score)
         multi_alignment.sequences = replace_with_neutral_symbol(multi_alignment.sequences)
         return multi_alignment
+
+    def operation2(self, leaf: Node, alignment: MultiAlignment) -> MultiAlignment:
+        """
+        Align a sequence S to an alignment A
+        1. Compute pairwise alignment score between S and all sequences S' in A
+        2. Align S according to the sequence in the best pairwise alignment
+        3. Change occurences of gap symbol to X
+        :param leaf:
+        :param alignment:
+        :return:
+
+        >>> from Bio.SeqRecord import SeqRecord
+        >>> feng = FengDoolittle()
+        >>> leaf = Node(None,None,sequence=SeqRecord("AA"))
+        >>> alignment = MultiAlignment(sequences=[SeqRecord("AAXX"),SeqRecord("GGCC")], score=4)
+        >>> res = feng.operation2(leaf,alignment)
+        >>> res.sequences[0].seq
+        'AAXX'
+        >>> res.sequences[1].seq
+        'AAXX'
+        >>> res.sequences[2].seq
+        'GGCC'
+        >>> res.score
+        0.0
+        """
+        best_alignment, index, score = self.compute_best_alignment_one_to_many(leaf, alignment)
+        best_alignment = replace_with_neutral_symbol(best_alignment)
+        alignment.sequences.pop(index)
+        alignment.sequences.insert(index, best_alignment[0])
+        alignment.sequences.insert(index, best_alignment[1])
+        alignment.score += score
+        return alignment
+
     @staticmethod
     def reforge_with_gaps(sequences, blueprint_sequence_index, old):
         """
