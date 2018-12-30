@@ -240,6 +240,14 @@ class FengDoolittle(object):
             else:
                 return self.operation3(self.traverse(child1), self.traverse(child2))
 
+    def compute_msa(self, guidetree: GuideTree):
+        msa = []
+        # for node in guidetree.order:
+        #    current_node = guidetree.nodes[node]
+        #    res = self.traverse(current_node)
+        msa = self.traverse(guidetree.root)
+        return msa
+
     def run(self, sequences):
         # init the xpgma
         # perform pairwise sequence alignments
