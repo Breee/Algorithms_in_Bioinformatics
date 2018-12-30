@@ -224,6 +224,26 @@ def count_gaps_in_pairwise_alignment(pairwise_alignment: Alignment):
     return count
 
 
+def replace_with_neutral_symbol(group):
+    if isinstance(group, Alignment):
+        group.sequence1 = group.sequence1.seq.replace("-", "X")
+        group.sequence2 = group.sequence2.seq.replace("-", "X")
+    elif isinstance(group, list):
+        for word in group:
+            word.seq = word.seq.replace("-", "X")
+    return group
+
+
+def replace_with_gap_symbol(group):
+    if isinstance(group, Alignment):
+        group.sequence1 = group.sequence1.seq.replace("X", "-")
+        group.sequence2 = group.sequence2.seq.replace("X", "-")
+    elif isinstance(group, list):
+        for word in group:
+            word.seq = word.seq.replace("X", "-")
+    return group
+
+
 class NotInAlphabetError(Exception):
     """
     Exception which is thrown, when a given sequence of letters is not in the alphabet.
