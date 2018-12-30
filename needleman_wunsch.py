@@ -23,7 +23,8 @@ class NeedlemanWunsch(object):
                  substitution_matrix=MatrixInfo.blosum62,
                  similarity=True, complete_traceback=False, verbose=False):
         LOGGER.info("Initialzing needleman-wunsch.")
-        sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"}
+        sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y",
+                 "X"}
         self.alphabet = Alphabet(sigma)
         # scores
         self.match_scoring = match_scoring
@@ -85,7 +86,9 @@ class NeedlemanWunsch(object):
 
     def score(self, letter1, letter2):
         LOGGER.debug("Calculating score S(%s,%s)" % (letter1, letter2))
-        if self.substitution_matrix:
+        if letter1 == "X" or letter2 == "X":
+            return 0
+        elif self.substitution_matrix:
             pair = (letter1, letter2)
             if pair not in self.substitution_matrix:
                 return self.substitution_matrix[(tuple(reversed(pair)))]
@@ -270,9 +273,9 @@ class NeedlemanWunsch(object):
 
         # return some dummy results
         return Result(seq1_ID=seq1.id,
-                      seq1=seq1.seq,
+                      seq1=seq1,
                       seq2_ID=seq2.id,
-                      seq2=seq2.seq,
+                      seq2=seq2,
                       score=self.desired_traceback.score,
                       alignments=res)
 
