@@ -107,6 +107,45 @@ class FengDoolittle(object):
                 # the score is the addition of all pairwise scores.
                 overall_score += result.score
         return [best_alignment.sequence1, best_alignment.sequence2], index1, index2, best_score, overall_score
+    @staticmethod
+    def reforge_with_gaps(sequences, blueprint_sequence_index, old):
+        """
+
+        :param sequences:
+        :param blueprint_sequence_index:
+        :return:
+        >>> from Bio.SeqRecord import SeqRecord
+        >>> sequences = [SeqRecord("AA"), SeqRecord("XAXA"), SeqRecord("XXGG")]
+        >>> res = FengDoolittle.reforge_with_gaps(sequences, blueprint_sequence_index=1, old=SeqRecord("AA"))
+        >>> res[0].seq
+        'XAXA'
+        >>> res[1].seq
+        'XAXA'
+        >>> res[2].seq
+        'XXGG'
+        """
+        new = sequences[blueprint_sequence_index]
+        add_list = []
+        # first we have to find out where new gaps have been inserted.
+        # if old and new are equal size, we assume nothing changed.
+        if len(new) == len(old):
+            return sequences
+        else:
+            for i, s in enumerate(difflib.ndiff(old, new)):
+                if s[0] == ' ':
+                    continue
+                elif s[0] == '+':
+                    # print(u'Add "{}" to position {}'.format(s[-1], i))
+                    add_list.append(i)
+        for seq in sequences:
+            if seq.seq != new.seq:
+                split = list(seq.seq)
+                for el in add_list:
+                    if split[el] != "X":
+                        split.insert(el, "X")
+                seq.seq = "".join(split)
+        return sequences
+        >>> from Bio.SeqRecord import SeqRecord
     def run(self, sequences):
         # init the xpgma
         # perform pairwise sequence alignments
