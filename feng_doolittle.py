@@ -1,3 +1,27 @@
+"""
+MIT License
+
+Copyright (c) 2018 Julian Löffler (Breee@github)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 from logger.log import setup_custom_logger
 from utility.utils import MultiAlignment, Result, count_gaps_in_pairwise_alignment, \
     count_occurences_symbol_in_word, parse_input, replace_with_neutral_symbol
@@ -75,6 +99,13 @@ class FengDoolittle(object):
         return score
 
     def compute_best_alignment_one_to_many(self, leaf: Node, alignment: MultiAlignment):
+        """
+        Function which finds the best alignment, by calculating alignments between a sequence and many sequences.
+        :param leaf: Node object which is a leaf
+        :param alignment: MultiAlignment object
+        :return: alignment, index of best alignment, alignment score.
+        """
+        assert leaf.is_leaf()
         best_alignment = None
         index = None
         best_score = None
@@ -90,6 +121,12 @@ class FengDoolittle(object):
         return [best_alignment.sequence1, best_alignment.sequence2], index, best_score
 
     def compute_best_alignment_many_to_many(self, alignment1: MultiAlignment, alignment2: MultiAlignment):
+        """
+        Function which finds the best alignment, by calculating alignment between two lists of sequences.
+        :param alignment1: MultiAlignment object
+        :param alignment2: MultiAlignment object
+        :return: best_alignment, index in alignment1, index in alignment2, best_score, overall_score
+        """
         best_alignment = None
         index1 = None
         index2 = None
@@ -114,9 +151,9 @@ class FengDoolittle(object):
         """
         Compute best pairwise alignment,
         change occurences of gap symbol to X
-        :param leaf1: leaf node
-        :param leaf2: leaf node
-        :return: alignment where all gaps are replaced with X
+        :param leaf1: Node object
+        :param leaf2: Node object
+        :return: MultiAlignment object
 
         >>> from Bio.SeqRecord import SeqRecord
         >>> feng = FengDoolittle()
@@ -127,6 +164,7 @@ class FengDoolittle(object):
         >>> res.sequences[1].seq
         'XAAXXA'
         """
+        assert leaf1.is_leaf() and leaf2.is_leaf()
         nw = NeedlemanWunsch()
         result = nw.run(leaf1.sequence, leaf2.sequence)
         multi_alignment = MultiAlignment(sequences=[result.alignments[0].sequence1, result.alignments[0].sequence2],
@@ -169,7 +207,7 @@ class FengDoolittle(object):
     @staticmethod
     def reforge_with_gaps(sequences, blueprint_sequence_index, old):
         """
-
+        Function which will update sequences and inserts gaps at the positions, where the new one has them.
         :param sequences:
         :param blueprint_sequence_index:
         :return:
@@ -205,7 +243,17 @@ class FengDoolittle(object):
                 seq.seq = "".join(split)
         return sequences
 
-    def operation3(self, alignment1: MultiAlignment, alignment2: MultiAlignment):
+    def operation3(self, alignment1: MultiAlignment, alignment2: MultiAlignment) -> MultiAlignment:
+        """
+        Align an alignment A1 to an alignment A2.
+        For each pair of sequences S1 in A1 and S2 in A2 compute pairwise alignment score
+        Align A1 and A2 according to the pairwise alignment with minimal distance.
+        Change occurences of gap symbol to X
+
+        :param alignment1: MultiAlignment object
+        :param alignment2: MultiAlignment object
+        :return: MultiAlignment object
+        """
         best_alignment, index1, index2, score, overall_score = self.compute_best_alignment_many_to_many(alignment1,
                                                                                                         alignment2)
         best_alignment = replace_with_neutral_symbol(best_alignment)
@@ -221,7 +269,17 @@ class FengDoolittle(object):
         new_alignment = MultiAlignment(sequences=new_sequences, score=overall_score)
         return new_alignment
 
-    def traverse(self, node: Node):
+    def traverse(self, node: Node) -> MultiAlignment:
+        """
+        Core function of the algorithm, it traverses a guide tree node to the bottom
+        and returns a MultiAlignment object.
+        There are three cases which are handled:
+        Case 1: Apply operation 1 on the sequences returned by the leafs and return the alignment
+        Case 2: Apply operation 2 on the sequence and the alignment and return the alignment
+        Case 3: Both Children are inner nodes, Apply operation 3 on the alignments and return the alignment
+        :param node: Node object
+        :return: MultiAlignment object
+        """
         if node.is_leaf():
             return node.sequence
         else:
@@ -243,7 +301,12 @@ class FengDoolittle(object):
             else:
                 return self.operation3(self.traverse(child1), self.traverse(child2))
 
-    def compute_msa(self, guidetree: GuideTree):
+    def compute_msa(self, guidetree: GuideTree) -> MultiAlignment:
+        """
+        Function to kickoff msa calculation
+        :param guidetree:
+        :return: MultiAlignment object
+        """
         msa = []
         # for node in guidetree.order:
         #    current_node = guidetree.nodes[node]
@@ -252,6 +315,11 @@ class FengDoolittle(object):
         return msa
 
     def run(self, sequences):
+        """
+        Run function for feng doolittle.
+        :param sequences: a list of SeqRecords
+        :return: MultiAlignment object
+        """
         # init the xpgma
         # perform pairwise sequence alignments
         nw = NeedlemanWunsch(verbose=args.verbose)
@@ -270,6 +338,7 @@ class FengDoolittle(object):
         print(msa)
         res_str = ",".join([x.seq for x in msa.sequences])
         LOGGER.info("GENERATED MSA:\nSCORE:%f\nMSA:%s" % (msa.score, res_str))
+        return msa
 
 
 def process_program_arguments():
