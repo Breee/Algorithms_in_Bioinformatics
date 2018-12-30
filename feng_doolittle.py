@@ -72,6 +72,20 @@ class FengDoolittle(object):
         LOGGER.info("New score: %.5f" % score)
         return score
 
+    def compute_best_alignment_one_to_many(self, leaf: Node, alignment: MultiAlignment):
+        best_alignment = None
+        index = None
+        best_score = None
+        leaf_sequence = leaf.sequence
+        sequences = alignment.sequences
+        nw = NeedlemanWunsch()
+        for i, seq in enumerate(sequences):
+            result = nw.run(leaf_sequence, seq)
+            if best_score is None or result.score > best_score:
+                best_score = result.score
+                best_alignment = result.alignments[0]
+                index = i
+        return [best_alignment.sequence1, best_alignment.sequence2], index, best_score
     def run(self, sequences):
         # init the xpgma
         # perform pairwise sequence alignments
