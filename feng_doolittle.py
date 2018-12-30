@@ -201,7 +201,22 @@ class FengDoolittle(object):
                         split.insert(el, "X")
                 seq.seq = "".join(split)
         return sequences
-        >>> from Bio.SeqRecord import SeqRecord
+
+    def operation3(self, alignment1: MultiAlignment, alignment2: MultiAlignment):
+        best_alignment, index1, index2, score, overall_score = self.compute_best_alignment_many_to_many(alignment1,
+                                                                                                        alignment2)
+        best_alignment = replace_with_neutral_symbol(best_alignment)
+        # remove old elements.
+        alignment1.sequences.pop(index1)
+        alignment1.sequences.insert(index1, best_alignment[0])
+        old = alignment2.sequences.pop(index2)
+        alignment2.sequences.insert(index2, best_alignment[1])
+        alignment2.sequences = self.reforge_with_gaps(alignment2.sequences, index2, old)
+        # merge sequences lists
+        new_sequences = alignment1.sequences + alignment2.sequences
+        # add new best_alignment.
+        new_alignment = MultiAlignment(sequences=new_sequences, score=overall_score)
+        return new_alignment
     def run(self, sequences):
         # init the xpgma
         # perform pairwise sequence alignments
