@@ -1,3 +1,4 @@
+#!usr/bin/python3
 """
 MIT License
 
@@ -34,6 +35,7 @@ from needleman_wunsch import NeedlemanWunsch
 from xpgma import Xpgma, Node, GuideTree
 import copy
 import difflib
+from Bio.SubsMat import MatrixInfo
 
 
 class FengDoolittle(object):
@@ -48,8 +50,13 @@ class FengDoolittle(object):
     - "Once a gap, always a gap": replace gaps in alignments by a neutral character.
     """
 
-    def __init__(self, verbose=False):
-        pass
+    def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=6,
+                 substitution_matrix=MatrixInfo.blosum62, verbose=False):
+        self.match_scoring = match_scoring
+        self.indel_scoring = indel_scoring
+        self.mismatch_scoring = mismatch_scoring
+        # Subsitution matrices (PAM/BLOSSOM), default is blossom62.
+        self.substitution_matrix = substitution_matrix
 
     def convert_to_evolutionary_distances(self, pairwise_alignment_result: Result) -> float:
         """Converts similarity score from a pairwise alignment to a distance score
@@ -347,6 +354,17 @@ def process_program_arguments():
                 "Error, provide input file/files/directory/directories using -i / --input. -h/--help for all "
                 "arguments.")
         exit(1)
+    if args.substitution_matrix != "PAM" and args.substitution_matrix != "BLOSSUM" and args.substitution_matrix != \
+            "NONE":
+        LOGGER.critical(
+                "UNKNOWN parameter for substitution matrix. Choose BLOSSUM or PAM, falling back to BLOSSUM")
+        args.substitution_matrix = MatrixInfo.blosum62
+    elif args.substitution_matrix == "BLOSSUM":
+        args.substitution_matrix = MatrixInfo.blosum62
+    elif args.substitution_matrix == "PAM":
+        args.substitution_matrix = MatrixInfo.pam250
+    elif args.substitution_matrix == "NONE":
+        args.substitution_matrix = None
 
 
 def run_feng_doolittle():
@@ -355,7 +373,8 @@ def run_feng_doolittle():
         LOGGER.warn("We received not enough sequences. Make sure you called the program correctly.")
         exit(1)
     elif len(sequences) >= 2:
-        feng = FengDoolittle()
+        feng = FengDoolittle(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
+                             verbose=args.verbose)
         feng.run(sequences)
 
 
@@ -375,6 +394,14 @@ if __name__ == '__main__':
                         help='A regex to define a filter, which will be applied to the files parsed.')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='verbose output.')
+    parser.add_argument('-m', '--match', type=float, default=1.0,
+                        help='match score')
+    parser.add_argument('-mm', '--mismatch', type=float, default=-1.0,
+                        help='mismatch score')
+    parser.add_argument('-g', '--gap_penalty', type=float, default=6.0,
+                        help='gap penalty')
+    parser.add_argument('-s', '--substitution_matrix', type=str, default="BLOSSUM",
+                        help='Substitution Matrix (BLOSSUM | PAM | NONE) default is BLOSSUM')
 
     args = parser.parse_args()
     main()

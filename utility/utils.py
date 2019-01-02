@@ -55,6 +55,12 @@ class Clustering(Enum):
     WPGMA = 1
 
 
+class PairingCase(Enum):
+    UNPAIRED = 0,
+    PAIRED_SUCCESSFUL = 1,
+    PAIRED_FAILURE = 2
+
+
 class Alignment(object):
     def __init__(self, sequence1, sequence2, operations, score):
         self.sequence1 = sequence1
