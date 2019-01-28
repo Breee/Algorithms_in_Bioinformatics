@@ -40,7 +40,7 @@ class Nussinov(object):
     def __init__(self, min_loop_length=1, verbose=False):
         LOGGER.info("Initialzing nussinov")
         sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y",
-                 "X"}
+                 "X", "U"}
         self.alphabet = Alphabet(sigma)
         self.matrix = None
         self.basepairs = {frozenset(["A", "U"]), frozenset(["G", "C"]), frozenset(["G", "U"])}
@@ -84,15 +84,15 @@ class Nussinov(object):
                 self.calc_score(j, k, seq)
 
     def calc_score(self, i, j, seq):
-        max = 0
+        max_val = 0
         k = i
         while i <= k and k < j:
             if self.is_basepair(seq[k], seq[j - 1]):
                 energy_of_pairing = self.matrix[i][k - 1] + self.matrix[k + 1][j - 1] + 1
-                if max < energy_of_pairing:
-                    max = energy_of_pairing
+                if max_val < energy_of_pairing:
+                    max_val = energy_of_pairing
             k += 1
-        self.matrix[i][j] = max(self.matrix[i][j - 1], max)
+        self.matrix[i][j] = max(self.matrix[i][j - 1], max_val)
 
     def traceback(self, i, j, seq):
         if j <= i:
