@@ -1,11 +1,39 @@
 \section{Multiple Sequence-Alignment}
 \label{sec:multi_alignment}
 
-\subsection{Needleman-Wunsch-Algorithm for n = 3 sequences}
-\label{sec:needleman_multi}
-
-\subsection{Sum-of-Pairs-Algorithm}
-\label{sec:sum_of_pairs}
+%\subsection{Needleman-Wunsch-Algorithm for n = 3 sequences}
+%\label{sec:needleman_multi}
+%
+%\subsection{Sum-of-Pairs-Algorithm}
+%\label{sec:sum_of_pairs}
 
 \subsection{Feng-Doolittle-Algorithm}
 \label{sec:feng_doolittle}
+The Feng-Doolittle-Algorithm is used for progressive alignment and the workflow is as follows:
+\begin{enumerate}
+  \item INPUT: a set of sequences $S$.
+  \item Perfom all pairwise sequence alignments using Needleman Wunsch or another alignment algorithm.
+  \item Convert the scores of all alignments to evolutionary distances.
+  \item Contruct a guide Tree.
+  \item Compute the MSA by traversing the guide tree node root to the bottom
+        and obtain a MSA. There are three cases which are handled:
+
+        Case 1: Apply operation 1 on the sequences returned by the leafs and return the alignment.
+
+        Case 2: Apply operation 2 on the sequence and the alignment and return the alignment.
+
+        Case 3: Both Children are inner nodes, Apply operation 3 on the alignments and return the alignment.
+
+        Operation 1 computes best pairwise alignment of two nodes and changes occurences of gap symbol to X.
+
+        Operation 2 aligns a sequence S to an alignment A where we
+        1. Compute pairwise alignment score between S and all sequences S' in A,
+        2. Align S according to the sequence in the best pairwise alignment,
+        3. Change occurences of gap symbol to X.
+
+        Operation 3 aligns an alignment A1 to an alignment A2.
+        For each pair of sequences S1 in A1 and S2 in A2 compute pairwise alignment score
+        Align A1 and A2 according to the pairwise alignment with minimal distance.
+        Change occurences of gap symbol to X
+
+\end{enumerate}

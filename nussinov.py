@@ -60,14 +60,14 @@ class Nussinov(object):
             not_paired = self.calc_optimal_pairing(i, j - 1, sequence)
 
             # check if j can be involved in a pairing with a position t
-            paired = [
-                1 + self.calc_optimal_pairing(i, k - 1, sequence) + self.calc_optimal_pairing(k + 1, j - 1, sequence)
-                for k in range(i, j - 4) \
-                if self.is_basepair(sequence[k], sequence[j])]
+            paired = [1
+                      + self.calc_optimal_pairing(i, k - 1, sequence)
+                      + self.calc_optimal_pairing(k + 1, j - 1, sequence)
+                      for k in range(i, j - 4) if self.is_basepair(sequence[k], sequence[j])
+                      ]
             if not paired:
                 paired = [0]
             paired = max(paired)
-
             return max(not_paired, paired)
 
     def traceback(self, i, j, sequence):
@@ -152,7 +152,7 @@ class Nussinov(object):
                 self.matrix[i][j] = self.matrix[j][i]
 
         self.traceback(0, size - 1, sequence)
-        return (sequence, self.structure_to_brackets(sequence))
+        return sequence, self.structure_to_brackets(sequence)
 
 
 def process_program_arguments():
@@ -165,10 +165,11 @@ def process_program_arguments():
 
 def run_nussinov():
     sequences = parse_input(args.input, args.file_filter)
-    nus = Nussinov(min_loop_length=args.loop_length)
+    nus = Nussinov(min_loop_length=args.min_loop_length)
     for sequence in sequences:
         sequence, brackets = nus.run(sequence)
-        LOGGER.info(f'Sequence: {sequence},\nStructure: {brackets}')
+        LOGGER.info(f'Sequence: {sequence},\n'
+                    f'Structure: {brackets}')
 
 
 def main():
@@ -185,8 +186,8 @@ if __name__ == '__main__':
                         help='A file, a directory or multiple directories. directories are processed recursively.')
     parser.add_argument('--file-filter', type=str, default='',
                         help='A regex to define a filter, which will be applied to the files parsed.')
-    parser.add_argument('-l', '--loop_length', type=int, default=1,
-                        help='loop length')
+    parser.add_argument('-l', '--min_loop_length', type=int, default=4,
+                        help='min loop length')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='verbose output.')
 

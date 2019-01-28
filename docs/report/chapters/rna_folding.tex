@@ -1,0 +1,41 @@
+\section{Nussinov}
+\label{sec:nussinov}
+We now introduce the algorithm of nussinov,
+which is a basic Dynamic Programming algorithm which was one of the first attempts at predicting the structure of RNA molecules computationally.
+The nussinov algorithm get a RNA sequence as input.
+The aim of the algorithm is to find out the pairings of the nucleotides in the sequence and compute a optimal structure.
+We can break down the problem into many subproblems which are easier to compute than the full problem. Once we have obtained the solution for the subproblems,
+we can retrieve the solution to the full problem by doing a backtrace.
+In order to know how good our structure is, we assign a score to it.
+One possible scoring scheme could be adding 1 to the score per paired set of nucleotides,
+and 0 otherwise. We want a pairing that will give us the highest possible score.
+This quantity we call $score(i,j)$, where $i,j$ are the indices of the sequence between which we obtain the pairing score.
+The nussinov algorithm computes a folding score for all substrings
+bound by $i$ and $j$ and store the value in what is known as a
+dynamic programming matrix. The matrix has shape $N \times N$, $N$ is the length of the input sequence.
+We need a way to evaluate scores given a subsequence. To do this, we set some rules on the structure of an RNA sequence:
+If $i$ and $j$ form a pair:
+(1) The pair $i$ and $j$ must form a valid watson-crick pair.
+(2) $i<j-4$. This ensures that bonding is not happening between positions that are too close to each other, which would produce steric clashes.
+(3) If pair $(i,j)$ and $(k,l)$ are in the structure, then $i<k<j<l$. This ensures that there is no crossing over of pairs which would result in pseudoknots.
+(4) No base appears in more than one pair.
+
+The workflow of the algorithm is a s follows:
+\begin{enumerate}
+  \item Initialize the matrix $D$.
+  \item fill the matrix $D$ recursively by following the following recursion:
+  $$matrix[i][j] = \begin{cases}0 \text{ if } i >= j - min_loop_length\\
+  max(unpaired, paired) \text{ else}
+  \end{cases} $$
+  where $unpaired$ is the score of letters i,j-1, $$unpaired = score(i, j - 1, sequence)$$
+  $paired$ is the score of pairing letter at j,
+  $paired = [ 1 + score(i, k - 1) + score(k + 1, j - 1) | \text{ for  k in range } (i, j - 4), \text{ if } sequence[k] \text{ and } sequence[j]  \text{ is a basepair}]$
+  \item traceback recursively starting at $i=0,j=N$.
+  if $j$ is unpaired, there will be no change in score when we take it out, so we just recurse to the next index.
+  if the score at $i,j$ is the result of adding 1 from pairing $(j,k)$ and whatever score
+   comes from the substructure to its left $(i, k-1)$ and to its right $(k+1, j-1)$.
+   if $k-1 < 0$ and  $matrix[i][j] == matrix[k + 1][j - 1] + 1$, we add $k,j$ to our structure,
+   and traceback from $k+1$, $j-1$.
+   If $k -1 >= 0$, and $matrix[i][j] == self.matrix[i][k - 1] + matrix[k + 1][j - 1] + 1$, we append $k,j$ to our structure, and explore from $i,k-1$  and $k+1,j-1$
+
+\end{enumerate}
