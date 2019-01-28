@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import numpy
+import numpy as np
 
 from logger.log import setup_custom_logger
 from utility.utils import Alphabet, parse_input
@@ -37,85 +37,122 @@ class Nussinov(object):
     Class which implements the nussinov algorithm.
     """
 
-    def __init__(self, min_loop_length=1, verbose=False):
+    def __init__(self, min_loop_length=4, verbose=False):
         LOGGER.info("Initialzing nussinov")
         sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y",
                  "X", "U"}
         self.alphabet = Alphabet(sigma)
         self.matrix = None
-        self.basepairs = {frozenset(["A", "U"]), frozenset(["G", "C"]), frozenset(["G", "U"])}
+        self.structure = []
+        self.basepairs = {frozenset(["A", "U"]), frozenset(["G", "C"])}
         self.min_loop_length = min_loop_length
-        self.paired = dict()
-
-    @staticmethod
-    def kth_diag_indices(a, k):
-        rows, cols = numpy.diag_indices_from(a)
-        if k < 0:
-            return rows[-k:], cols[:k]
-        elif k > 0:
-            return rows[:-k], cols[k:]
-        else:
-            return rows, cols
 
     def is_basepair(self, letter1, letter2):
         return {letter1, letter2} in self.basepairs
 
-    def calculate_matrix(self, seq):
+    def calc_optimal_pairing(self, i, j, sequence):
+        """ returns the score of the optimal pairing between indices i and j"""
+        # base case: no pairs allowed when i and j are less than 4 bases apart
+        if i >= j - self.min_loop_length:
+            return 0
+        else:
+            # i and j can be paired or not, if not paired then the optimal score is the optimal pairing at i,j-1
+            not_paired = self.calc_optimal_pairing(i, j - 1, sequence)
+
+            # check if j can be involved in a pairing with a position t
+            paired = [
+                1 + self.calc_optimal_pairing(i, k - 1, sequence) + self.calc_optimal_pairing(k + 1, j - 1, sequence)
+                for k in range(i, j - 4) \
+                if self.is_basepair(sequence[k], sequence[j])]
+            if not paired:
+                paired = [0]
+            paired = max(paired)
+
+            return max(not_paired, paired)
+
+    def traceback(self, i, j, sequence):
         """
-        :param seq:
-        :param loop_length:
+        Traceback in the scoring matrix
+        :param i: i pos in the matrix
+        :param j: j pos in the matrix
+        :param sequence: input sequence
         :return: void
-        >>> nus = Nussinov()
-        >>> nus.calculate_matrix("GCACGACG")
-        >>> nus.matrix
-        array([[0., 0., 1., 1., 1., 2., 2., 2., 3.],
-               [0., 0., 0., 0., 0., 1., 1., 1., 2.],
-               [0., 0., 0., 0., 0., 1., 1., 1., 2.],
-               [0., 0., 0., 0., 0., 1., 1., 1., 2.],
-               [0., 0., 0., 0., 0., 0., 0., 1., 1.],
-               [0., 0., 0., 0., 0., 0., 0., 0., 1.],
-               [0., 0., 0., 0., 0., 0., 0., 0., 1.],
-               [0., 0., 0., 0., 0., 0., 0., 0., 0.]])
         """
-        self.matrix = numpy.zeros(shape=(len(seq), len(seq) + 1), dtype=float)
-
-        for i in range(2, len(seq) + 1):
-            for k, j in zip(range(i, len(seq) + 1), range(0, len(seq) - 1)):
-                self.calc_score(j, k, seq)
-
-    def calc_score(self, i, j, seq):
-        max_val = 0
-        k = i
-        while i <= k and k < j:
-            if self.is_basepair(seq[k], seq[j - 1]):
-                energy_of_pairing = self.matrix[i][k - 1] + self.matrix[k + 1][j - 1] + 1
-                if max_val < energy_of_pairing:
-                    max_val = energy_of_pairing
-            k += 1
-        self.matrix[i][j] = max(self.matrix[i][j - 1], max_val)
-
-    def traceback(self, i, j, seq):
+        # in this case we've gone through the whole sequence. Nothing to do.
         if j <= i:
             return
+        # if j is unpaired, there will be no change in score when we take it out, so we just recurse to the next index
         elif self.matrix[i][j] == self.matrix[i][j - 1]:
-            self.traceback(i, j - 1, seq)
-            return
+            self.traceback(i, j - 1, sequence)
         else:
-            k = i
-            while i <= k and k < j:
-                if self.is_basepair(seq[k - 1], seq[j - 1]):
-                    if self.matrix[i][j] == self.matrix[i][k - 1] + self.matrix[k][j - 1] + 1:
-                        self.paired[k] = j
-                        self.traceback(i, k - 1, seq)
-                        self.traceback(k, j - 1, seq)
-                        return
-                k += 1
+            # try pairing j with a matching index k to its left.
+            for k in [b for b in range(i, j - self.min_loop_length) if self.is_basepair(sequence[b], sequence[j])]:
+                # if the score at i,j is the result of adding 1 from pairing (j,k) and whatever score
+                # comes from the substructure to its left (i, k-1) and to its right (k+1, j-1)
+                if k - 1 < 0:
+                    if self.matrix[i][j] == self.matrix[k + 1][j - 1] + 1:
+                        self.structure.append((k, j))
+                        self.traceback(k + 1, j - 1, sequence)
+                elif self.matrix[i][j] == self.matrix[i][k - 1] + self.matrix[k + 1][j - 1] + 1:
+                    # add the pair (j,k) to the list of pairs
+                    self.structure.append((k, j))
+                    # recursive exploration of substructures formed by this pairing
+                    self.traceback(i, k - 1, sequence)
+                    self.traceback(k + 1, j - 1, sequence)
+
+    def structure_to_brackets(self, sequence):
+        """
+        Convert a structure to bracket representation
+        :param sequence: input sequence.
+        :return:  bracket representation
+        """
+        assert self.structure, "structure is empty."
+        dot_list = ["." for _ in range(len(sequence))]
+        for s in self.structure:
+            dot_list[min(s)] = "("
+            dot_list[max(s)] = ")"
+        return "".join(dot_list)
+
+    def init_matrix(self, size):
+        """
+        Initialize the matrix.
+        :param size: lenght of the sequence.
+        :return:
+        """
+        # size x size matrix.
+        self.matrix = np.empty((size, size))
+        self.matrix[:] = np.NAN
+        for k in range(0, self.min_loop_length):
+            for i in range(size - k):
+                j = i + k
+                self.matrix[i][j] = 0
 
     def run(self, sequence):
+        """
+        Function which runs nussinov. The function will
+        (1) check if the letters of the input sequence are valid,
+        (2) initialize the dynamic programming matrix self.matrix
+        (3) calculate the optimal pairing
+        (4) return the bracket representation of the optimal structure.
+        :param sequence: input sequence
+        :return: optimal structure.
+        """
         self.alphabet.check_words(sequence)
-        self.calculate_matrix(sequence)
-        self.traceback(0, len(sequence), sequence)
-        print(self.paired)
+        size = len(sequence)
+        self.init_matrix(size=size)
+        # fill the matrix
+        for k in range(self.min_loop_length, size):
+            for i in range(size - k):
+                j = i + k
+                self.matrix[i][j] = self.calc_optimal_pairing(i, j, sequence)
+
+        # mirror
+        for i in range(size):
+            for j in range(0, i):
+                self.matrix[i][j] = self.matrix[j][i]
+
+        self.traceback(0, size - 1, sequence)
+        return (sequence, self.structure_to_brackets(sequence))
 
 
 def process_program_arguments():
@@ -130,7 +167,8 @@ def run_nussinov():
     sequences = parse_input(args.input, args.file_filter)
     nus = Nussinov(min_loop_length=args.loop_length)
     for sequence in sequences:
-        nus.run(sequence)
+        sequence, brackets = nus.run(sequence)
+        LOGGER.info(f'Sequence: {sequence},\nStructure: {brackets}')
 
 
 def main():
