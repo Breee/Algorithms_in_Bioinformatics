@@ -36,6 +36,7 @@ from xpgma import Xpgma, Node, GuideTree
 import copy
 import difflib
 from Bio.SubsMat import MatrixInfo
+from utility.utils import Clustering
 
 
 class FengDoolittle(object):
@@ -51,12 +52,14 @@ class FengDoolittle(object):
     """
 
     def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=6,
-                 substitution_matrix=MatrixInfo.blosum62, verbose=False):
+                 substitution_matrix=MatrixInfo.blosum62, verbose=False, clustering_method=Clustering.UPGMA):
         self.match_scoring = match_scoring
         self.indel_scoring = indel_scoring
         self.mismatch_scoring = mismatch_scoring
         # Subsitution matrices (PAM/BLOSSOM), default is blossom62.
         self.substitution_matrix = substitution_matrix
+        self.verbose = verbose
+        self.clustering_method = clustering_method
 
     def convert_to_evolutionary_distances(self, pairwise_alignment_result: Result) -> float:
         """Converts similarity score from a pairwise alignment to a distance score
@@ -95,13 +98,13 @@ class FengDoolittle(object):
         if s_max == s_rand:
             s_rand = s_rand - 0.0001
 
-        S_eff = (s_ab.score - s_rand) / (s_max - s_rand)
+        s_eff = (s_ab.score - s_rand) / (s_max - s_rand)
 
         # negative values make no sense.
-        if S_eff <= 0.0:
+        if s_eff <= 0.0:
             score = 1
         else:
-            score = - math.log(S_eff)
+            score = - math.log(s_eff)
         LOGGER.info("New score: %.5f" % score)
         return score
 
@@ -314,10 +317,6 @@ class FengDoolittle(object):
         :param guidetree:
         :return: MultiAlignment object
         """
-        msa = []
-        # for node in guidetree.order:
-        #    current_node = guidetree.nodes[node]
-        #    res = self.traverse(current_node)
         msa = self.traverse(guidetree.root)
         return msa
 
@@ -327,28 +326,29 @@ class FengDoolittle(object):
         :param sequences: a list of SeqRecords
         :return: MultiAlignment object
         """
-        # init the xpgma
         # perform pairwise sequence alignments
-        nw = NeedlemanWunsch(verbose=args.verbose)
+        nw = NeedlemanWunsch(verbose=self.verbose)
         alignments = nw.pairwise_alignments(sequences)
         LOGGER.info("Needleman Wunsch Alignments:\n%s" % "\n".join([str(x) for x in alignments]))
         # Convert the scores to approximate pairwise evolutionary distances.
         for alignment in alignments:
             alignment.score = self.convert_to_evolutionary_distances(alignment)
         # 2. Construct a guide tree
-        xpgma = Xpgma()
+        # init the xpgma
+        xpgma = Xpgma(clustering_method=self.clustering_method)
         tree = xpgma.run(alignments)
+        LOGGER.info(tree)
         # 3. Start from the first node that has been added to the guide tree and align the child nodes
         # For all other nodes in the order in which they were added to the tree.
         # Do this until all sequences have been aligned.
         msa = self.compute_msa(tree)
-        print(msa)
         res_str = ",".join([x.seq for x in msa.sequences])
         LOGGER.info("GENERATED MSA:\nSCORE:%f\nMSA:%s" % (msa.score, res_str))
         return msa
 
 
 def process_program_arguments():
+    LOGGER.info(f'Arguments:\n {args}')
     if not args.input:
         LOGGER.critical(
                 "Error, provide input file/files/directory/directories using -i / --input. -h/--help for all "
@@ -365,6 +365,14 @@ def process_program_arguments():
         args.substitution_matrix = MatrixInfo.pam250
     elif args.substitution_matrix == "NONE":
         args.substitution_matrix = None
+    if args.clustering_mode.lower() == 'upgma':
+        args.clustering_mode = Clustering.UPGMA
+    elif args.clustering_mode.lower() == 'wpgma':
+        args.clustering_mode = Clustering.WPGMA
+    else:
+        LOGGER.critical(
+                "UNKNOWN parameter for clustering mode. Choose UPGMA or WPGMA, falling back to UPGMA")
+        args.clustering_mode = Clustering.UPGMA
 
 
 def run_feng_doolittle():
@@ -374,7 +382,7 @@ def run_feng_doolittle():
         exit(1)
     elif len(sequences) >= 2:
         feng = FengDoolittle(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                             verbose=args.verbose)
+                             verbose=args.verbose, clustering_method=args.clustering_mode)
         feng.run(sequences)
 
 
@@ -402,6 +410,8 @@ if __name__ == '__main__':
                         help='gap penalty')
     parser.add_argument('-s', '--substitution_matrix', type=str, default="BLOSSUM",
                         help='Substitution Matrix (BLOSSUM | PAM | NONE) default is BLOSSUM')
+    parser.add_argument('-cm', '--clustering_mode', type=str, default="UPGMA",
+                        help='UPGMA | WPGMA')
 
     args = parser.parse_args()
     main()
