@@ -28,7 +28,8 @@ import unittest
 import numpy as np
 from Bio.SubsMat import MatrixInfo
 
-from needleman_wunsch import NeedlemanWunsch
+from needleman_wunsch import NeedlemanWunsch, ScoringSettings
+from utility.utils import parse_fasta_files
 
 
 class NeedlemanWunschTest(unittest.TestCase):
@@ -45,7 +46,7 @@ class NeedlemanWunschTest(unittest.TestCase):
         """Testing score calculation using Blossum62 + Gap Penalty = 6"""
 
         print("######### Testing calculation of scoring matrix. ###########")
-        nw = NeedlemanWunsch(substitution_matrix=MatrixInfo.blosum62, gap_penalty=6)
+        nw = NeedlemanWunsch(ScoringSettings(substitution_matrix=MatrixInfo.blosum62, gap_penalty=6))
         print("############# Case 1 ##############")
         print("############# START ##############")
         seq1 = "A"
@@ -81,9 +82,8 @@ class NeedlemanWunschTest(unittest.TestCase):
 
     def test_scoring_pam(self):
         """Testing score calculation using PAM250 + Gap Penalty = 8"""
-
         print("######### Testing calculation of scoring matrix. ###########")
-        nw = NeedlemanWunsch(substitution_matrix=MatrixInfo.pam250, gap_penalty=8)
+        nw = NeedlemanWunsch(ScoringSettings(substitution_matrix=MatrixInfo.pam250, gap_penalty=8))
         print("############# Case 1 ##############")
         print("############# START ##############")
         seq1 = "A"
@@ -116,6 +116,58 @@ class NeedlemanWunschTest(unittest.TestCase):
         print("RESULT:\n %s" % pprint.pformat(nw.scoring_matrix))
         self.assertAlmostEqual(nw.scoring_matrix[-1][-1], 31.0)
         print("############# FINISH ##############")
+
+    def test_run_pam(self):
+        pairs_to_result = {('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT'): 31,
+                           ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 44,
+                           ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 13,
+                           ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 15,
+                           ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 16,
+                           ('ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 45}
+
+        sequence_file = '../data/guideline_tests/needlemanwunsch.fa'
+        sequences = parse_fasta_files([sequence_file])
+        # init the needleman
+        settings = ScoringSettings(substitution_matrix=MatrixInfo.pam250, gap_penalty=8,
+                                   similarity=True)
+        nw = NeedlemanWunsch(settings, complete_traceback=False, verbose=False)
+        results = nw.pairwise_alignments(sequences)
+        for result in results:
+            seqs = (str(result.seq1.seq), str(result.seq2.seq))
+            expected_score = pairs_to_result[seqs]
+            self.assertEqual(result.score, expected_score)
+
+    def test_run_blossum(self):
+        pairs_to_result = {('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT'): 4,
+                           ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 37,
+                           ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : -4,
+                           ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 3,
+                           ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 9,
+                           ('ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 24}
+
+        sequence_file = '../data/guideline_tests/needlemanwunsch.fa'
+        sequences = parse_fasta_files([sequence_file])
+        # init the needleman
+        settings = ScoringSettings(substitution_matrix=MatrixInfo.blosum62, gap_penalty=6,
+                                   similarity=True)
+        nw = NeedlemanWunsch(settings, complete_traceback=False, verbose=False)
+        results = nw.pairwise_alignments(sequences)
+        for result in results:
+            seqs = (str(result.seq1.seq), str(result.seq2.seq))
+            expected_score = pairs_to_result[seqs]
+            self.assertEqual(result.score, expected_score)
 
 
 if __name__ == '__main__':

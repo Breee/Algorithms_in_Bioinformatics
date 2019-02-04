@@ -23,7 +23,6 @@ SOFTWARE.
 """
 
 import logging
-from pprint import pformat
 
 import numpy
 from Bio.SeqRecord import SeqRecord
@@ -327,14 +326,15 @@ class NeedlemanWunsch(object):
         total = len(combinations)
         current = 1
         for x, y in sorted(combinations, key=lambda x: x[0].id):
-            LOGGER.info(" Alignment %d / %d (SEQ1: %s, SEQ2: %s)" % (current, total, x.seq, y.seq))
+            LOGGER.info(" Alignment %d / %d (%s, %s)" % (current, total, x.seq, y.seq))
             res = self.run(x, y, complete_traceback=self.complete_traceback)
             results.append(res)
             LOGGER.info("SEQUENCE PAIR:(ID:%s SEQ:%s) ~ (ID:%s SEQ:%s)" % (x.id, x.seq, y.id, y.seq))
             LOGGER.info("SCORE: %s" % res.score)
             LOGGER.info("PRINTING ALIGNMENT(S): ")
             for i, alignment in enumerate(res.alignments):
-                LOGGER.info("%d. ALIGNMENT: (%s, %s)" % (i + 1, alignment.sequence1.seq, alignment.sequence2.seq))
+                LOGGER.info("%d. ALIGNMENT:\n%s\n%s\n################" % (
+                    i + 1, alignment.sequence1.seq, alignment.sequence2.seq))
             current += 1
         return results
 
@@ -364,8 +364,7 @@ def run_needleman():
     settings = ScoringSettings(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
                                similarity=(not args.distance))
     nw = NeedlemanWunsch(settings, complete_traceback=args.all, verbose=args.verbose)
-    results = nw.pairwise_alignments(sequences)
-    LOGGER.info("SUMMARY:\n%s" % pformat(results))
+    nw.pairwise_alignments(sequences)
 
 
 def main():
