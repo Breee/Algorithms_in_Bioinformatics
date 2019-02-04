@@ -49,6 +49,12 @@ class ScoringType(Enum):
     DISTANCE = 1
 
 
+class SimilarityScoringMethod(Enum):
+    PURE_ALIGNMENT = 0,
+    SCORE2DISTANCE = 1,
+    SCORE2DISTANCE_EXTENDED = 2
+
+
 class Clustering(Enum):
     UPGMA = 0,
     WPGMA = 1
