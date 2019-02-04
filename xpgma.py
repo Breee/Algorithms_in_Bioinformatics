@@ -92,7 +92,7 @@ class Xpgma(object):
     Class which implements the WPGMA/UPGMA algorithm.
     """
 
-    def __init__(self, clustering_method=Clustering.UPGMA):
+    def __init__(self, clustering_method="UPGMA"):
         LOGGER.info("Initializing Xpgma")
         # The scoring matrix, which is used to calculate the optimal alignment scores.
         self.distances = dict()
