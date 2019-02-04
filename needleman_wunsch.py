@@ -38,24 +38,33 @@ import argparse
 import itertools
 
 
+class ScoringSettings:
+    def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=6,
+                 substitution_matrix=MatrixInfo.blosum62, similarity=True):
+        self.similarity = similarity
+        self.substitution_matrix = substitution_matrix
+        self.gap_penalty = gap_penalty
+        self.mismatch_scoring = mismatch_scoring
+        self.indel_scoring = indel_scoring
+        self.match_scoring = match_scoring
+
+
 class NeedlemanWunsch(object):
     """
     Class which implements the needleman-wunsch algorithm.
     """
 
-    def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=6,
-                 substitution_matrix=MatrixInfo.blosum62,
-                 similarity=True, complete_traceback=False, verbose=False):
+    def __init__(self, settings=ScoringSettings(), complete_traceback=False, verbose=False):
         LOGGER.info("Initialzing needleman-wunsch.")
         sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y",
                  "X"}
         self.alphabet = Alphabet(sigma)
         # scores
-        self.match_scoring = match_scoring
-        self.indel_scoring = indel_scoring
-        self.mismatch_scoring = mismatch_scoring
+        self.match_scoring = settings.match_scoring
+        self.indel_scoring = settings.indel_scoring
+        self.mismatch_scoring = settings.mismatch_scoring
         # Subsitution matrices (PAM/BLOSSOM), default is blossom62.
-        self.substitution_matrix = substitution_matrix
+        self.substitution_matrix = settings.substitution_matrix
         # The traceback matrix contains TracebackCell objects,
         self.traceback_matrix = numpy.zeros(shape=(1, 1), dtype=object)
         # Will store the TracebakCell in the bottom right of the Traceback Matrix.
@@ -65,12 +74,12 @@ class NeedlemanWunsch(object):
         self.complete_traceback = complete_traceback
         # The scoring matrix, which is used to calculate the optimal alignment scores.
         self.scoring_matrix = numpy.zeros(shape=(1, 1))
-        if similarity:
+        if settings.similarity:
             self.scoring_type = ScoringType.SIMILARITY
-            self.gap_penalty = abs(gap_penalty) * (-1)
+            self.gap_penalty = abs(settings.gap_penalty) * (-1)
         else:
             self.scoring_type = ScoringType.DISTANCE
-            self.gap_penalty = abs(gap_penalty)
+            self.gap_penalty = abs(settings.gap_penalty)
             raise NotImplementedError("DISTANCE is not implemented yet.")
         self.alignments = []
         if verbose:
@@ -102,7 +111,6 @@ class NeedlemanWunsch(object):
             self.scoring_matrix.T[0][i] = score
             self.traceback_matrix.T[0][i] = TracebackCell(
                     predecessors=[(Operation.INSERTION, self.traceback_matrix.T[0][i - 1])], score=score)
-        LOGGER.info("Done.")
         assert self.scoring_matrix.shape == (len(seq1) + 1, len(seq2) + 1)
         assert self.traceback_matrix.shape == (len(seq1) + 1, len(seq2) + 1)
 
@@ -219,7 +227,6 @@ class NeedlemanWunsch(object):
         """Function to kickoff exploration of a TracebackCell"""
         LOGGER.info("Kicking off exploration of Traceback.")
         self.tracebacks = self.explore(self.desired_traceback, [])
-        LOGGER.info("Done.")
 
     def generate_alignments(self, seq1: SeqRecord, seq2: SeqRecord, all=False):
         """
@@ -274,13 +281,19 @@ class NeedlemanWunsch(object):
 
         >>> nw = NeedlemanWunsch()
         >>> fasta = ["data/test1.fa", "data/test2.fa"]
+        >>> from utility.utils import parse_fasta_files
         >>> sequences = parse_fasta_files(fasta)
         >>> res = nw.run(sequences[0],sequences[1], complete_traceback=False)
-        >>> res
-        (SEQ1: test1, ACA, SEQ2: test2, AA,
-         ALIGNMENTS:
-        [Alignment: (ACA, A-A), Score: 2],
-         SCORE: 2.0)
+        >>> res.alignments
+        [Alignment: (ID: S1
+        Name: S1
+        Description: <unknown description>
+        Number of features: 0
+        'AAA', ID: S2
+        Name: S2
+        Description: <unknown description>
+        Number of features: 0
+        '-AA'), Score: 2]
         """
         LOGGER.info("Running on sequences: (%s, %s)" % (seq1.seq, seq2.seq))
         self.alphabet.check_words({seq1.seq, seq2.seq})
@@ -348,8 +361,9 @@ def process_program_arguments():
 def run_needleman():
     sequences = parse_input(args.input, args.file_filter)
     # init the needleman
-    nw = NeedlemanWunsch(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                         similarity=(not args.distance), complete_traceback=args.all, verbose=args.verbose)
+    settings = ScoringSettings(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
+                               similarity=(not args.distance))
+    nw = NeedlemanWunsch(settings, complete_traceback=args.all, verbose=args.verbose)
     results = nw.pairwise_alignments(sequences)
     LOGGER.info("SUMMARY:\n%s" % pformat(results))
 
@@ -381,5 +395,3 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     main()
-else:
-    pass

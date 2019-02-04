@@ -101,7 +101,7 @@ class Xpgma(object):
         elif clustering_method == "WPGMA":
             self.clustering_method = Clustering.WPGMA
         else:
-            self.clustering_method = Clustering.UPGMA
+            raise NotImplementedError(f'Clustering method {clustering_method}')
         self.guidetree = GuideTree()
 
     def create_distance_matrix(self, alignments):

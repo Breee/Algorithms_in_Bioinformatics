@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import logging
+
 import numpy as np
 
 from logger.log import setup_custom_logger
@@ -46,6 +48,8 @@ class Nussinov(object):
         self.structure = []
         self.basepairs = {frozenset(["A", "U"]), frozenset(["G", "C"])}
         self.min_loop_length = min_loop_length
+        if verbose:
+            LOGGER.level = logging.DEBUG
 
     def is_basepair(self, letter1, letter2):
         return {letter1, letter2} in self.basepairs
@@ -206,5 +210,3 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     main()
-else:
-    pass

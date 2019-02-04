@@ -37,3 +37,12 @@ class TestFengDoolittle(TestCase):
                           "RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQXTT"]
         print(res.sequences)
         print(res.score)
+        print('####### UPGMA, PAM250, gap=8')
+        feng = FengDoolittle(gap_penalty=8, substitution_matrix=MatrixInfo.pam250, clustering_method=Clustering.UPGMA)
+        res = feng.run(sequences)
+        expected_order = ["ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN",
+                          "ISDTEADIGSNLRWGCXAAAGKPRPMVRWLRNGEPLXASQNXRVEVXXLAX",
+                          "RRLIPAARGGEISILCQPRAAXPKATILWSKXGTEILGNXSTRVTVXTXSD",
+                          "RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQXTT"]
+        print(res.sequences)
+        print(res.score)

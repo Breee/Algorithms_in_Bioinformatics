@@ -61,7 +61,8 @@ class FengDoolittle(object):
         self.verbose = verbose
         self.clustering_method = clustering_method
 
-    def convert_to_evolutionary_distances(self, pairwise_alignment_result: Result) -> float:
+    @staticmethod
+    def convert_to_evolutionary_distances(pairwise_alignment_result: Result) -> float:
         """Converts similarity score from a pairwise alignment to a distance score
         using approximation algorithm
 

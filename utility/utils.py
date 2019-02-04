@@ -24,7 +24,6 @@ SOFTWARE.
 
 import fnmatch
 import os
-import pprint
 import re
 from enum import Enum
 from pprint import pformat
@@ -342,4 +341,4 @@ class Result(object):
 
     def __repr__(self):
         return "(SEQ1: %s, %s, SEQ2: %s, %s, ALIGNMENTS:%s, SCORE: %s)" % (
-            self.seq1_ID, self.seq1, self.seq2_ID, self.seq2, pprint.pformat(self.alignments), self.score)
+            self.seq1_ID, self.seq1, self.seq2_ID, self.seq2, self.alignments, self.score)
