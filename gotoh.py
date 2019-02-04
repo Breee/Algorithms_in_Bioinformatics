@@ -58,7 +58,7 @@ class Gotoh(object):
         self.substitution_matrix = substitution_matrix
         # The traceback matrix contains TracebackCell objects,
         self.traceback_matrix = numpy.zeros(shape=(1, 1), dtype=object)
-        # Will store the TracebakCell in the bottom right of the Traceback Matrix.
+        # Will store the TracebackCell of the bottom right of self.traceback_matrix.
         self.desired_traceback = TracebackCell(None, None)
         # All tracebacks
         self.tracebacks = list()
@@ -79,9 +79,7 @@ class Gotoh(object):
         self.alignments = []
         if verbose:
             LOGGER.level = logging.DEBUG
-        LOGGER.info("Scoring-Type: %s" % self.scoring_type)
-        LOGGER.debug("Substitution Matrix:\n %s" % pformat(self.substitution_matrix))
-        LOGGER.info("Gap Penalty: %d" % self.gap_penalty)
+        LOGGER.info(f'Gotoh initialized with: {["%s: %s" % item for item in vars(self).items()]}')
 
     def init_scoring_matrices(self, seq1, seq2):
         """
@@ -193,7 +191,7 @@ class Gotoh(object):
         :return: void. the function fills self.scoring_matrix_D, self.scoring_matrix_P, self.scoring_matrix_Q,
         self.traceback_matrix
 
-        >>> got = Gotoh(match_scoring=1, mismatch_scoring=-1, substitution_matrix=None)
+        >>> got = Gotoh(substitution_matrix=None, gap_penalty=-11, gap_extend=-1)
         >>> got.calculate_scoring_matrix("AATC","AACT")
         >>> got.scoring_matrix_D
         array([[  0.,  -9., -12., -15., -18.],
@@ -240,10 +238,13 @@ class Gotoh(object):
 
                 # We then update the traceback matrix.
                 pre = []
+                # if we have a match in D, we store the predecessor i-1, j-i
                 if self.scoring_matrix_D[i][j] == match_D:
                     pre.append({"traceback_i": i - 1, "traceback_j": j - 1, "operation": Operation.MATCH})
+                # if we have a deletion in P, we store the predecessor i-1, j
                 if self.scoring_matrix_D[i][j] == deletion_P:
                     pre.append({"traceback_i": i - 1, "traceback_j": j, "operation": Operation.DELETION})
+                # if we have a insertion in Q, we store the predecessor i, j-1
                 if self.scoring_matrix_D[i][j] == insertion_Q:
                     pre.append({"traceback_i": i, "traceback_j": j - 1, "operation": Operation.INSERTION})
                 cell = self.create_traceback_cell(predecessors=pre, score_i=i, score_j=j)
@@ -341,10 +342,9 @@ class Gotoh(object):
         >>> sequences = parse_fasta_files(fasta)
         >>> res = got.run(sequences[0],sequences[1], complete_traceback=True)
         >>> res
-        (SEQ1: test1, ACA, SEQ2: test2, AA,
-         ALIGNMENTS:
-        [Alignment: (ACA, A-A), Score: -11],
-         SCORE: -11.0)
+        (SEQ1: S1, AAA, SEQ2: S2, AA, ALIGNMENTS:[Alignment: (AAA, -AA), Score: -11,
+         Alignment: (AAA, A-A), Score: -11,
+         Alignment: (AAA, AA-), Score: -11], SCORE: -11.0)
         """
 
         self.alphabet.check_words({seq1.seq, seq2.seq})

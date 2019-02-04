@@ -75,9 +75,7 @@ class NeedlemanWunsch(object):
         self.alignments = []
         if verbose:
             LOGGER.level = logging.DEBUG
-        LOGGER.info("Scoring-Type: %s" % self.scoring_type)
-        LOGGER.debug("Substitution Matrix:\n %s" % pformat(self.substitution_matrix))
-        LOGGER.info("Gap Penalty: %d" % self.gap_penalty)
+        LOGGER.info(f'Needleman Wunsch initialized with: {["%s: %s" % item for item in vars(self).items()]}')
 
     def init_scoring_matrix(self, seq1, seq2):
         """
@@ -110,8 +108,10 @@ class NeedlemanWunsch(object):
 
     def score(self, letter1, letter2):
         LOGGER.debug("Calculating score S(%s,%s)" % (letter1, letter2))
+        # if the letter is a special gap char X from Multiple sequence alignment, return 0.
         if letter1 == "X" or letter2 == "X":
             return 0
+        # if we use a substituion matrix, retrieve the score of a letter pair (l_1, l_2).
         elif self.substitution_matrix:
             pair = (letter1, letter2)
             if pair not in self.substitution_matrix:
@@ -121,6 +121,7 @@ class NeedlemanWunsch(object):
             else:
                 raise KeyError("%s and %s  do not appear as pair in substitution matrix: %s" % (
                     letter1, letter2, self.substitution_matrix))
+        # Else use match / mismatch values as scores.
         elif letter1 == letter2:
             return self.match_scoring
         else:

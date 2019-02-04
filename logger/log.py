@@ -1,7 +1,4 @@
 import logging
-import sys
-
-from logger.rainbowlogger import RainbowLoggingHandler
 
 
 class bcolors:
@@ -19,9 +16,9 @@ def color_msg(msg, color_code):
 def setup_custom_logger(name, logfile=None):
     if logfile:
         logging.basicConfig(filename=logfile)
-    logger_format = '%(asctime)s - %(levelname)s - %(module)s - %(message)s'
+    logger_format = '[%(asctime)s][%(levelname)s][%(module)s] %(message)s'
     formatter = logging.Formatter(fmt=logger_format)
-    handler = RainbowLoggingHandler(sys.stdout)
+    handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)

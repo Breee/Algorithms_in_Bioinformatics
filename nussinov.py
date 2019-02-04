@@ -113,6 +113,18 @@ class Nussinov(object):
             dot_list[max(s)] = ")"
         return "".join(dot_list)
 
+    def structure_to_coords(self, sequence):
+        """
+        Convert a structure to bracket representation
+        :param sequence: input sequence.
+        :return:  bracket representation
+        """
+        assert self.structure, "structure is empty."
+        coords = []
+        for s in self.structure:
+            coords.append((min(s), max(s)))
+        return coords
+
     def init_matrix(self, size):
         """
         Initialize the matrix.
@@ -152,7 +164,7 @@ class Nussinov(object):
                 self.matrix[i][j] = self.matrix[j][i]
 
         self.traceback(0, size - 1, sequence)
-        return sequence, self.structure_to_brackets(sequence)
+        return sequence, self.structure_to_brackets(sequence), self.structure_to_coords(sequence)
 
 
 def process_program_arguments():
@@ -167,9 +179,10 @@ def run_nussinov():
     sequences = parse_input(args.input, args.file_filter)
     nus = Nussinov(min_loop_length=args.min_loop_length)
     for sequence in sequences:
-        sequence, brackets = nus.run(sequence)
+        sequence, brackets, coords = nus.run(sequence)
         LOGGER.info(f'Sequence: {sequence},\n'
-                    f'Structure: {brackets}')
+                    f'Structure (Brackets): {brackets}\n'
+                    f'Structure (coords): {coords}')
 
 
 def main():

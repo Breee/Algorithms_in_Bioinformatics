@@ -337,13 +337,11 @@ class FengDoolittle(object):
         # init the xpgma
         xpgma = Xpgma(clustering_method=self.clustering_method)
         tree = xpgma.run(alignments)
-        LOGGER.info(tree)
-        # 3. Start from the first node that has been added to the guide tree and align the child nodes
-        # For all other nodes in the order in which they were added to the tree.
-        # Do this until all sequences have been aligned.
+        # 3. Start from the root of the tree to compute MSA.
         msa = self.compute_msa(tree)
-        res_str = ",".join([x.seq for x in msa.sequences])
-        LOGGER.info("GENERATED MSA:\nSCORE:%f\nMSA:%s" % (msa.score, res_str))
+        res_str = "\n".join([x.seq for x in msa.sequences])
+        LOGGER.info(f'Tree: {tree}')
+        LOGGER.info("GENERATED MSA:\nSCORE:%f\nMSA:\n\n%s" % (msa.score, res_str))
         return msa
 
 

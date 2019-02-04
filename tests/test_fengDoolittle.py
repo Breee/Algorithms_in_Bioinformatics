@@ -1,8 +1,11 @@
 from unittest import TestCase
 
+from Bio.SubsMat import MatrixInfo
+
 from feng_doolittle import FengDoolittle
 from needleman_wunsch import NeedlemanWunsch
 from utility import utils
+from xpgma import Clustering
 
 TESTFILES = [""]
 
@@ -24,7 +27,9 @@ class TestFengDoolittle(TestCase):
     def test_run(self):
         # perform pairwise sequence alignments
         sequences = utils.parse_fasta_files(["../data/feng_test/feng1.fa"])
-        feng = FengDoolittle()
+        # case 1
+        print('####### WPGMA, PAM250, gap=8')
+        feng = FengDoolittle(gap_penalty=8, substitution_matrix=MatrixInfo.pam250, clustering_method=Clustering.WPGMA)
         res = feng.run(sequences)
         expected_order = ["ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN",
                           "ISDTEADIGSNLRWGCXAAAGKPRPMVRWLRNGEPLXASQNXRVEVXXLAX",
