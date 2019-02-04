@@ -96,9 +96,9 @@ class Xpgma(object):
         LOGGER.info("Initializing Xpgma")
         # The scoring matrix, which is used to calculate the optimal alignment scores.
         self.distances = dict()
-        if clustering_method == "UPGMA":
+        if clustering_method == "UPGMA" or clustering_method == Clustering.UPGMA:
             self.clustering_method = Clustering.UPGMA
-        elif clustering_method == "WPGMA":
+        elif clustering_method == "WPGMA" or clustering_method == Clustering.WPGMA:
             self.clustering_method = Clustering.WPGMA
         else:
             raise NotImplementedError(f'Clustering method {clustering_method}')
@@ -337,5 +337,3 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     main()
-else:
-    pass
