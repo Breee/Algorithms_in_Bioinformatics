@@ -137,43 +137,49 @@ class GotohTest(unittest.TestCase):
         pairs_to_result = {('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
                             'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT'): 33,
                            ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
-                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 60,
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA'):      60,
                            ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
-                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 30,
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD'):     30,
                            ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
-                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 9,
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD'):     9,
                            ('ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA',
-                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 41,
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD'):     41,
 
                            ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
-                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 17}
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA'):      17
+                           }
         sequence_file = '../data/guideline_tests/needlemanwunsch.fa'
         sequences = parse_fasta_files([sequence_file])
         gt = Gotoh(substitution_matrix=MatrixInfo.pam250,
                    gap_penalty=11,
                    gap_extend=1,
                    similarity=True,
-                   verbose=False, complete_traceback=False)
+                   verbose=False, complete_traceback=True)
         results = gt.pairwise_alignments(sequences)
         for result in results:
             seqs = (str(result.seq1), str(result.seq2))
             expected_score = pairs_to_result[seqs]
             self.assertEqual(result.score, expected_score)
+            # print(len(result.alignments))
+        # import numpy
+        # with numpy.printoptions(threshold=numpy.inf):
+        #    print(gt.scoring_matrix_D)
 
     def test_run_blossum(self):
         pairs_to_result = {('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
                             'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT'): 0,
                            ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
-                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 41,
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA'):      41,
                            ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
-                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 5,
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD'):     5,
                            ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
-                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : -4,
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD'):     -4,
                            ('ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA',
-                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 18,
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD'):     18,
 
                            ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
-                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : -5}
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA'):      -5
+                           }
 
         sequence_file = '../data/guideline_tests/needlemanwunsch.fa'
         sequences = parse_fasta_files([sequence_file])
@@ -181,12 +187,13 @@ class GotohTest(unittest.TestCase):
                    gap_penalty=11,
                    gap_extend=1,
                    similarity=True,
-                   verbose=False, complete_traceback=False)
+                   verbose=False, complete_traceback=True)
         results = gt.pairwise_alignments(sequences)
         for result in results:
             seqs = (str(result.seq1), str(result.seq2))
             expected_score = pairs_to_result[seqs]
             self.assertEqual(result.score, expected_score)
+            print(len(result.alignments))
 
 
 if __name__ == '__main__':
