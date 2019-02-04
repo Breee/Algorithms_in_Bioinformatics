@@ -31,12 +31,13 @@ LOGGER = setup_custom_logger("feng", logfile="feng.log")
 
 import argparse
 import math
-from needleman_wunsch import NeedlemanWunsch
+from needleman_wunsch import NeedlemanWunsch, ScoringSettings
 from xpgma import Xpgma, Node, GuideTree
 import copy
 import difflib
 from Bio.SubsMat import MatrixInfo
-from utility.utils import Clustering
+from utility.utils import Clustering, SimilarityScoringMethod
+import random
 
 
 class FengDoolittle(object):
@@ -51,18 +52,24 @@ class FengDoolittle(object):
     - "Once a gap, always a gap": replace gaps in alignments by a neutral character.
     """
 
-    def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=6,
-                 substitution_matrix=MatrixInfo.blosum62, verbose=False, clustering_method=Clustering.UPGMA):
-        self.match_scoring = match_scoring
-        self.indel_scoring = indel_scoring
-        self.mismatch_scoring = mismatch_scoring
+    def __init__(self, settings=ScoringSettings(match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=6,
+                                                substitution_matrix=MatrixInfo.blosum62), verbose=False,
+                 clustering_method=Clustering.UPGMA,
+                 similarity_scoring_method=SimilarityScoringMethod.SCORE2DISTANCE_EXTENDED):
+        self.nw_settings = settings
+        self.match_scoring = settings.match_scoring
+        self.indel_scoring = settings.indel_scoring
+        self.mismatch_scoring = settings.mismatch_scoring
+        self.gap_penalty = settings.gap_penalty
         # Subsitution matrices (PAM/BLOSSOM), default is blossom62.
-        self.substitution_matrix = substitution_matrix
+        self.substitution_matrix = settings.substitution_matrix
         self.verbose = verbose
         self.clustering_method = clustering_method
+        self.similarity_scoring_method = similarity_scoring_method
 
     @staticmethod
-    def convert_to_evolutionary_distances(pairwise_alignment_result: Result) -> float:
+    def convert_to_evolutionary_distances(pairwise_alignment_result: Result, similarity_scoring_method,
+                                          nw_settings) -> float:
         """Converts similarity score from a pairwise alignment to a distance score
         using approximation algorithm
 
@@ -81,20 +88,32 @@ class FengDoolittle(object):
         seq2 = copy.deepcopy(alignment.sequence2)
         seq2.seq = seq2.seq.replace("-", "")
 
-        nw = NeedlemanWunsch()
+        nw = NeedlemanWunsch(settings=nw_settings)
         s_ab = nw.run(seq1, seq2)
         s_aa = nw.run(seq1, seq1)
         s_bb = nw.run(seq2, seq2)
 
         s_max = (s_aa.score + s_bb.score) / 2
-        s_rand = (1 / len(alignment.sequence1)) * \
-                 sum([nw.score(nw.alphabet.letters[i],
-                               nw.alphabet.letters[j])
-                      * count_occurences_symbol_in_word(seq1.seq, nw.alphabet.letters[i])
-                      * count_occurences_symbol_in_word(seq2.seq, nw.alphabet.letters[j])
-                      for i in range(len(nw.alphabet.letters)) for j in range(len(nw.alphabet.letters))]) \
-                 + count_gaps_in_pairwise_alignment(alignment) * nw.gap_penalty
 
+        if similarity_scoring_method == SimilarityScoringMethod.SCORE2DISTANCE_EXTENDED:
+            s_rand = (1 / len(alignment.sequence1)) * \
+                     sum([nw.score(nw.alphabet.letters[i],
+                                   nw.alphabet.letters[j])
+                          * count_occurences_symbol_in_word(seq1.seq, nw.alphabet.letters[i])
+                          * count_occurences_symbol_in_word(seq2.seq, nw.alphabet.letters[j])
+                          for i in range(len(nw.alphabet.letters)) for j in range(len(nw.alphabet.letters))]) \
+                     + count_gaps_in_pairwise_alignment(alignment) * nw.gap_penalty
+        elif similarity_scoring_method == SimilarityScoringMethod.SCORE2DISTANCE:
+            # copy sequences to no permanently change them
+            seq1_shuffled = copy.deepcopy(seq1)
+            seq2_shuffled = copy.deepcopy(seq2)
+            # shuffle letters.
+            seq1_shuffled.seq = ''.join(random.sample(seq1.seq, len(seq1)))
+            seq2_shuffled.seq = ''.join(random.sample(seq2.seq, len(seq2)))
+            s_rand = (nw.run(seq1_shuffled, seq2_shuffled)).score
+        else:
+            raise NotImplementedError(
+                    f'similarity_scoring_method {similarity_scoring_method} not supported/implemented.')
         # prevent division by zero.
         if s_max == s_rand:
             s_rand = s_rand - 0.0001
@@ -122,7 +141,7 @@ class FengDoolittle(object):
         best_score = None
         leaf_sequence = leaf.sequence
         sequences = alignment.sequences
-        nw = NeedlemanWunsch()
+        nw = NeedlemanWunsch(settings=self.nw_settings)
         for i, seq in enumerate(sequences):
             result = nw.run(leaf_sequence, seq)
             if best_score is None or result.score > best_score:
@@ -145,7 +164,7 @@ class FengDoolittle(object):
         overall_score = 0
         sequences1 = alignment1.sequences
         sequences2 = alignment2.sequences
-        nw = NeedlemanWunsch()
+        nw = NeedlemanWunsch(settings=self.nw_settings)
         for i, seq1 in enumerate(sequences1):
             for j, seq2 in enumerate(sequences2):
                 result = nw.run(seq1, seq2)
@@ -176,7 +195,7 @@ class FengDoolittle(object):
         'XAAXXA'
         """
         assert leaf1.is_leaf() and leaf2.is_leaf()
-        nw = NeedlemanWunsch()
+        nw = NeedlemanWunsch(settings=self.nw_settings)
         result = nw.run(leaf1.sequence, leaf2.sequence)
         multi_alignment = MultiAlignment(sequences=[result.alignments[0].sequence1, result.alignments[0].sequence2],
                                          score=result.score)
@@ -223,12 +242,12 @@ class FengDoolittle(object):
         :param blueprint_sequence_index:
         :return:
         >>> from Bio.SeqRecord import SeqRecord
-        >>> sequences = [SeqRecord("AA"), SeqRecord("XAXA"), SeqRecord("XXGG")]
+        >>> sequences = [SeqRecord("AA"), SeqRecord("XXAA"), SeqRecord("XXGG")]
         >>> res = FengDoolittle.reforge_with_gaps(sequences, blueprint_sequence_index=1, old=SeqRecord("AA"))
         >>> res[0].seq
-        'XAXA'
+        'XXAA'
         >>> res[1].seq
-        'XAXA'
+        'XXAA'
         >>> res[2].seq
         'XXGG'
         """
@@ -319,6 +338,8 @@ class FengDoolittle(object):
         :return: MultiAlignment object
         """
         msa = self.traverse(guidetree.root)
+        for el in msa.sequences:
+            el.seq = el.seq.replace('X', '-')
         return msa
 
     def run(self, sequences):
@@ -328,19 +349,28 @@ class FengDoolittle(object):
         :return: MultiAlignment object
         """
         # perform pairwise sequence alignments
-        nw = NeedlemanWunsch(verbose=self.verbose)
+        nw = NeedlemanWunsch(settings=ScoringSettings(), verbose=self.verbose)
         alignments = nw.pairwise_alignments(sequences)
+        alignments = sorted(alignments, key=lambda x: x.score, reverse=True)
         LOGGER.info("Needleman Wunsch Alignments:\n%s" % "\n".join([str(x) for x in alignments]))
         # Convert the scores to approximate pairwise evolutionary distances.
         for alignment in alignments:
-            alignment.score = self.convert_to_evolutionary_distances(alignment)
+            if self.similarity_scoring_method == SimilarityScoringMethod.SCORE2DISTANCE or \
+                    self.similarity_scoring_method == SimilarityScoringMethod.SCORE2DISTANCE_EXTENDED:
+                alignment.score = self.convert_to_evolutionary_distances(alignment, self.similarity_scoring_method,
+                                                                         self.nw_settings)
+            elif self.similarity_scoring_method == SimilarityScoringMethod.PURE_ALIGNMENT:
+                alignment.score *= -1
+            else:
+                raise NotImplementedError(
+                        f'similarity_scoring_method {self.similarity_scoring_method} not supported/implemented.')
         # 2. Construct a guide tree
         # init the xpgma
         xpgma = Xpgma(clustering_method=self.clustering_method)
         tree = xpgma.run(alignments)
         # 3. Start from the root of the tree to compute MSA.
         msa = self.compute_msa(tree)
-        res_str = "\n".join([x.seq for x in msa.sequences])
+        res_str = f'Tree: {tree}\n' + "\n".join([x.seq for x in msa.sequences])
         LOGGER.info(f'Tree: {tree}')
         LOGGER.info("GENERATED MSA:\nSCORE:%f\nMSA:\n\n%s" % (msa.score, res_str))
         return msa
@@ -358,12 +388,13 @@ def process_program_arguments():
         LOGGER.critical(
                 "UNKNOWN parameter for substitution matrix. Choose BLOSSUM or PAM, falling back to BLOSSUM")
         args.substitution_matrix = MatrixInfo.blosum62
-    elif args.substitution_matrix == "BLOSSUM":
+    elif args.substitution_matrix.lower() == "blosum":
         args.substitution_matrix = MatrixInfo.blosum62
-    elif args.substitution_matrix == "PAM":
+    elif args.substitution_matrix.lower() == "pam":
         args.substitution_matrix = MatrixInfo.pam250
-    elif args.substitution_matrix == "NONE":
+    elif args.substitution_matrix.lower() == "none":
         args.substitution_matrix = None
+
     if args.clustering_mode.lower() == 'upgma':
         args.clustering_mode = Clustering.UPGMA
     elif args.clustering_mode.lower() == 'wpgma':
@@ -373,15 +404,30 @@ def process_program_arguments():
                 "UNKNOWN parameter for clustering mode. Choose UPGMA or WPGMA, falling back to UPGMA")
         args.clustering_mode = Clustering.UPGMA
 
+    if args.similarity_scoring_method.lower() == 'score2distance_extended':
+        args.similarity_scoring_method = SimilarityScoringMethod.SCORE2DISTANCE_EXTENDED
+    elif args.similarity_scoring_method.lower() == 'score2distance':
+        args.similarity_scoring_method = SimilarityScoringMethod.SCORE2DISTANCE
+    elif args.similarity_scoring_method.lower() == 'pure':
+        args.similarity_scoring_method = SimilarityScoringMethod.PURE_ALIGNMENT
+    else:
+        LOGGER.critical(
+                "UNKNOWN parameter for similarity scoring method. Choose: score2distance_extended | score2distance | "
+                "pure, we fall back to score2distance_extended")
+        args.similarity_scoring_method = SimilarityScoringMethod.SCORE2DISTANCE_EXTENDED
+
 
 def run_feng_doolittle():
     sequences = parse_input(args.input, args.file_filter)
     if len(sequences) < 2:
-        LOGGER.warn("We received not enough sequences. Make sure you called the program correctly.")
+        LOGGER.warn("We received not enough sequences. Make sure you called program the  correctly.")
         exit(1)
     elif len(sequences) >= 2:
-        feng = FengDoolittle(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                             verbose=args.verbose, clustering_method=args.clustering_mode)
+        settings = ScoringSettings(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
+                                   similarity=True, match_scoring=args.match,
+                                   mismatch_scoring=args.mismatch)
+        feng = FengDoolittle(settings=settings, verbose=args.verbose, clustering_method=args.clustering_mode,
+                             similarity_scoring_method=args.similarity_scoring_method)
         feng.run(sequences)
 
 
@@ -402,17 +448,17 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='verbose output.')
     parser.add_argument('-m', '--match', type=float, default=1.0,
-                        help='match score')
+                        help='match score (only needed if no substituion matrix is given)')
     parser.add_argument('-mm', '--mismatch', type=float, default=-1.0,
-                        help='mismatch score')
+                        help='mismatch score (only needed if no substituion matrix is given)')
     parser.add_argument('-g', '--gap_penalty', type=float, default=6.0,
                         help='gap penalty')
-    parser.add_argument('-s', '--substitution_matrix', type=str, default="BLOSSUM",
+    parser.add_argument('-s', '--substitution_matrix', type=str, default="blossum",
                         help='Substitution Matrix (BLOSSUM | PAM | NONE) default is BLOSSUM')
-    parser.add_argument('-cm', '--clustering_mode', type=str, default="UPGMA",
+    parser.add_argument('-cm', '--clustering_mode', type=str, default="blossum",
                         help='UPGMA | WPGMA')
+    parser.add_argument('-sm', '--similarity_scoring_method', type=str, default="score2distance_extended",
+                        help='score2distance_extended | score2distance | pure')
 
     args = parser.parse_args()
     main()
-else:
-    pass
