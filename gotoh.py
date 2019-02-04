@@ -45,7 +45,7 @@ class Gotoh(object):
     """
 
     def __init__(self, match_scoring=1, indel_scoring=-1, mismatch_scoring=-1, gap_penalty=11, gap_extend=1,
-                 substitution_matrix=MatrixInfo.blosum62,
+                 substitution_matrix=MatrixInfo.blosum62, complete_traceback=False,
                  similarity=True, verbose=False):
         LOGGER.info("Initialzing gotoh.")
         sigma = {"A", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"}
@@ -62,6 +62,7 @@ class Gotoh(object):
         self.desired_traceback = TracebackCell(None, None)
         # All tracebacks
         self.tracebacks = list()
+        self.complete_traceback = complete_traceback
         # The scoring matrix, which is used to calculate the optimal alignment scores.
         self.scoring_matrix_D = numpy.zeros(shape=(1, 1))
         self.scoring_matrix_Q = numpy.zeros(shape=(1, 1))
@@ -376,7 +377,7 @@ class Gotoh(object):
         current = 1
         for x, y in combinations:
             LOGGER.info(" Alignment %d / %d (SEQ1: %s, SEQ2: %s)" % (current, total, x.seq, y.seq))
-            res = self.run(x, y, complete_traceback=args.all)
+            res = self.run(x, y, complete_traceback=self.complete_traceback)
             results.append(res)
             LOGGER.info("SEQUENCE PAIR:\nSEQ1 ID:%s SEQ:%s\n"
                         "SEQ2 ID:%s SEQ:%s" % (x.id, x.seq, y.id, y.seq))
@@ -416,7 +417,8 @@ def run_gotoh():
     elif len(sequences) >= 2:
         # init the gotoh
         got = Gotoh(substitution_matrix=args.substitution_matrix, gap_penalty=args.gap_penalty,
-                    similarity=(not args.distance), match_scoring=args.match, mismatch_scoring=args.mismatch,
+                    gap_extend=args.gap_extension, similarity=(not args.distance), match_scoring=args.match,
+                    mismatch_scoring=args.mismatch, complete_traceback=args.all,
                     verbose=args.verbose)
         results = got.pairwise_alignments(sequences)
         LOGGER.info("SUMMARY:\n%s" % pformat(results))

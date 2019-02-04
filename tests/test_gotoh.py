@@ -30,6 +30,7 @@ import numpy as np
 from Bio.SubsMat import MatrixInfo
 
 from gotoh import Gotoh
+from utility.utils import parse_fasta_files
 
 
 class GotohTest(unittest.TestCase):
@@ -130,6 +131,62 @@ class GotohTest(unittest.TestCase):
         print("RESULT:\n %s" % pprint.pformat(got.scoring_matrix_D))
         self.assertAlmostEqual(got.scoring_matrix_D[-1][-1], 33)
         print("############# FINISH ##############")
+
+    def test_run_pam(self):
+
+        pairs_to_result = {('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT'): 33,
+                           ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 60,
+                           ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 30,
+                           ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 9,
+                           ('ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 41,
+
+                           ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 17}
+        sequence_file = '../data/guideline_tests/needlemanwunsch.fa'
+        sequences = parse_fasta_files([sequence_file])
+        gt = Gotoh(substitution_matrix=MatrixInfo.pam250,
+                   gap_penalty=11,
+                   gap_extend=1,
+                   similarity=True,
+                   verbose=False, complete_traceback=False)
+        results = gt.pairwise_alignments(sequences)
+        for result in results:
+            seqs = (str(result.seq1), str(result.seq2))
+            expected_score = pairs_to_result[seqs]
+            self.assertEqual(result.score, expected_score)
+
+    def test_run_blossum(self):
+        pairs_to_result = {('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT'): 0,
+                           ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : 41,
+                           ('ILDMDVVEGSAARFDCKVEGYPDPEVMWFKDDNPVKESRHFQIDYDEEGN',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 5,
+                           ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : -4,
+                           ('ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA',
+                            'RRLIPAARGGEISILCQPRAAPKATILWSKGTEILGNSTRVTVTSD')    : 18,
+
+                           ('RDPVKTHEGWGVMLPCNPPAHYPGLSYRWLLNEFPNFIPTDGRHFVSQTT',
+                            'ISDTEADIGSNLRWGCAAAGKPRPMVRWLRNGEPLASQNRVEVLA')     : -5}
+
+        sequence_file = '../data/guideline_tests/needlemanwunsch.fa'
+        sequences = parse_fasta_files([sequence_file])
+        gt = Gotoh(substitution_matrix=MatrixInfo.blosum62,
+                   gap_penalty=11,
+                   gap_extend=1,
+                   similarity=True,
+                   verbose=False, complete_traceback=False)
+        results = gt.pairwise_alignments(sequences)
+        for result in results:
+            seqs = (str(result.seq1), str(result.seq2))
+            expected_score = pairs_to_result[seqs]
+            self.assertEqual(result.score, expected_score)
 
 
 if __name__ == '__main__':
