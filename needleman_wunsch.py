@@ -83,7 +83,8 @@ class NeedlemanWunsch(object):
         self.alignments = []
         if verbose:
             LOGGER.level = logging.DEBUG
-        LOGGER.info(f'Needleman Wunsch initialized with: {["%s: %s" % item for item in vars(self).items()]}')
+        LOGGER.debug(
+                f'Needleman Wunsch initialized with: {["%s: %s" % item for item in vars(self).items()]}')
 
     def init_scoring_matrix(self, seq1, seq2):
         """
@@ -151,7 +152,7 @@ class NeedlemanWunsch(object):
                [-24., -14.,  -4.,  11.,   6.]])
         >>> nw.traceback_matrix[-1][-1]
         ([(<Operation.MATCH: (1,)>, ([(<Operation.MATCH: (1,)>, ([(<Operation.MATCH: (1,)>, ([(<Operation.MATCH: (1,\
-)>, ([], 0))], 4.0))], 8.0))], 7.0))], 6.0)
+    )>, ([], 0))], 4.0))], 8.0))], 7.0))], 6.0)
         """
         # initialize scoring matrix.
         self.init_scoring_matrix(seq1=seq1, seq2=seq2)
