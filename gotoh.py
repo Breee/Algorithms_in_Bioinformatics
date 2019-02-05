@@ -232,21 +232,21 @@ class Gotoh(object):
                 self.scoring_matrix_Q[i][j] = max(self.scoring_matrix_D[i][j - 1] + self.gap_cost(1),
                                                   self.scoring_matrix_Q[i][j - 1] + self.gap_extend)
 
-                match_D = self.scoring_matrix_D[i - 1][j - 1] + score
-                insertion_Q = self.scoring_matrix_Q[i][j]
-                deletion_P = self.scoring_matrix_P[i][j]
-                self.scoring_matrix_D[i][j] = max(match_D, insertion_Q, deletion_P)
+                match_d = self.scoring_matrix_D[i - 1][j - 1] + score
+                insertion_q = self.scoring_matrix_Q[i][j]
+                deletion_p = self.scoring_matrix_P[i][j]
+                self.scoring_matrix_D[i][j] = max(match_d, insertion_q, deletion_p)
 
                 # We then update the traceback matrix.
                 pre = []
                 # if we have a match in D, we store the predecessor i-1, j-i
-                if self.scoring_matrix_D[i][j] == match_D:
+                if self.scoring_matrix_D[i][j] == match_d:
                     pre.append({"traceback_i": i - 1, "traceback_j": j - 1, "operation": Operation.MATCH})
                 # if we have a deletion in P, we store the predecessor i-1, j
-                if self.scoring_matrix_D[i][j] == deletion_P:
+                if self.scoring_matrix_D[i][j] == deletion_p:
                     pre.append({"traceback_i": i - 1, "traceback_j": j, "operation": Operation.DELETION})
                 # if we have a insertion in Q, we store the predecessor i, j-1
-                if self.scoring_matrix_D[i][j] == insertion_Q:
+                if self.scoring_matrix_D[i][j] == insertion_q:
                     pre.append({"traceback_i": i, "traceback_j": j - 1, "operation": Operation.INSERTION})
                 cell = self.create_traceback_cell(predecessors=pre, score_i=i, score_j=j)
                 self.traceback_matrix[i][j] = cell
