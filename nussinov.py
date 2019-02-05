@@ -54,57 +54,7 @@ class Nussinov(object):
     def is_basepair(self, letter1, letter2):
         return {letter1, letter2} in self.basepairs
 
-    def calc_optimal_pairing(self, i, j, sequence):
-        """ returns the score of the optimal pairing between indices i and j"""
-        # base case: no pairs allowed when i and j are less than 4 bases apart
-        if i >= j - self.min_loop_length:
-            return 0
-        else:
-            # i and j can be paired or not, if not paired then the optimal score is the optimal pairing at i,j-1
-            not_paired = self.calc_optimal_pairing(i, j - 1, sequence)
-
-            # check if j can be involved in a pairing with a position t
-            paired = [1
-                      + self.calc_optimal_pairing(i, k - 1, sequence)
-                      + self.calc_optimal_pairing(k + 1, j - 1, sequence)
-                      for k in range(i, j - 4) if self.is_basepair(sequence[k], sequence[j])
-                      ]
-            if not paired:
-                paired = [0]
-            paired = max(paired)
-            return max(not_paired, paired)
-
-    def traceback(self, i, j, sequence):
-        """
-        Traceback in the scoring matrix
-        :param i: i pos in the matrix
-        :param j: j pos in the matrix
-        :param sequence: input sequence
-        :return: void
-        """
-        # in this case we've gone through the whole sequence. Nothing to do.
-        if j <= i:
-            return
-        # if j is unpaired, there will be no change in score when we take it out, so we just recurse to the next index
-        elif self.matrix[i][j] == self.matrix[i][j - 1]:
-            self.traceback(i, j - 1, sequence)
-        else:
-            # try pairing j with a matching index k to its left.
-            for k in [b for b in range(i, j - self.min_loop_length) if self.is_basepair(sequence[b], sequence[j])]:
-                # if the score at i,j is the result of adding 1 from pairing (j,k) and whatever score
-                # comes from the substructure to its left (i, k-1) and to its right (k+1, j-1)
-                if k - 1 < 0:
-                    if self.matrix[i][j] == self.matrix[k + 1][j - 1] + 1:
-                        self.structure.append((k, j))
-                        self.traceback(k + 1, j - 1, sequence)
-                elif self.matrix[i][j] == self.matrix[i][k - 1] + self.matrix[k + 1][j - 1] + 1:
-                    # add the pair (j,k) to the list of pairs
-                    self.structure.append((k, j))
-                    # recursive exploration of substructures formed by this pairing
-                    self.traceback(i, k - 1, sequence)
-                    self.traceback(k + 1, j - 1, sequence)
-
-    def structure_to_brackets(self, sequence):
+    def structure_to_brackets_coords(self, sequence):
         """
         Convert a structure to bracket representation
         :param sequence: input sequence.
@@ -112,36 +62,31 @@ class Nussinov(object):
         """
         assert self.structure, "structure is empty."
         dot_list = ["." for _ in range(len(sequence))]
+        coords_list = []
         for s in self.structure:
-            dot_list[min(s)] = "("
-            dot_list[max(s)] = ")"
-        return "".join(dot_list)
+            coords = s['coords']
+            coords_list.append((min(coords), max(coords)))
+            dot_list[min(coords)] = "("
+            dot_list[max(coords)] = ")"
+        return "".join(dot_list), coords_list
 
-    def structure_to_coords(self, sequence):
-        """
-        Convert a structure to bracket representation
-        :param sequence: input sequence.
-        :return:  bracket representation
-        """
-        assert self.structure, "structure is empty."
-        coords = []
-        for s in self.structure:
-            coords.append((min(s), max(s)))
-        return coords
-
-    def init_matrix(self, size):
-        """
-        Initialize the matrix.
-        :param size: lenght of the sequence.
-        :return:
-        """
-        # size x size matrix.
-        self.matrix = np.empty((size, size))
-        self.matrix[:] = np.NAN
-        for k in range(0, self.min_loop_length):
-            for i in range(size - k):
-                j = i + k
-                self.matrix[i][j] = 0
+    def traceback(self, sequence, i, j, structure):
+        if i < j:
+            if self.matrix[i][j] == self.matrix[i + 1][j]:
+                self.traceback(sequence, i + 1, j, structure)
+            elif self.matrix[i][j] == self.matrix[i][j - 1]:
+                self.traceback(sequence, i, j - 1, structure)
+            elif self.matrix[i][j] == self.matrix[i + 1][j - 1] + 1 if self.is_basepair(sequence[i],
+                                                                                        sequence[j]) else 0:
+                structure.append({'coords': (i, j), 'letters': (str(sequence[i]), str(sequence[j]))})
+                self.traceback(sequence, i + 1, j - 1, structure)
+            else:
+                for k in range(i + 1, j):
+                    if self.matrix[i][j] == self.matrix[i][k] + self.matrix[k + 1][j]:
+                        self.traceback(sequence, i, k, structure)
+                        self.traceback(sequence, k + 1, j, structure)
+                        break
+        return structure
 
     def run(self, sequence):
         """
@@ -155,20 +100,31 @@ class Nussinov(object):
         """
         self.alphabet.check_words(sequence)
         size = len(sequence)
-        self.init_matrix(size=size)
+        self.structure = []
+        self.matrix = np.zeros((size, size))
         # fill the matrix
-        for k in range(self.min_loop_length, size):
-            for i in range(size - k):
-                j = i + k
-                self.matrix[i][j] = self.calc_optimal_pairing(i, j, sequence)
-
+        for n in range(1, size):
+            for j in range(n, size):
+                i = j - n
+                case1 = self.matrix[i + 1][j - 1] + 1 if self.is_basepair(sequence[i], sequence[j]) else 0
+                case2 = self.matrix[i + 1][j]
+                case3 = self.matrix[i][j - 1]
+                if i + 3 <= j:
+                    tmp = []
+                    for k in range(i + 1, j):
+                        tmp.append(self.matrix[i, k] + self.matrix[k + 1, j])
+                    case4 = max(tmp)
+                    self.matrix[i][j] = max(case1, case2, case3, case4)
+                else:
+                    self.matrix[i][j] = max(case1, case2, case3)
         # mirror
         for i in range(size):
             for j in range(0, i):
                 self.matrix[i][j] = self.matrix[j][i]
 
-        self.traceback(0, size - 1, sequence)
-        return sequence, self.structure_to_brackets(sequence), self.structure_to_coords(sequence)
+        self.structure = self.traceback(sequence, 0, size - 1, [])
+        structure, coords_list = self.structure_to_brackets_coords(sequence)
+        return sequence, structure, coords_list
 
 
 def process_program_arguments():
@@ -183,10 +139,10 @@ def run_nussinov():
     sequences = parse_input(args.input, args.file_filter)
     nus = Nussinov(min_loop_length=args.min_loop_length)
     for sequence in sequences:
-        sequence, brackets, coords = nus.run(sequence)
+        sequence, brackets, coords_list = nus.run(sequence)
         LOGGER.info(f'Sequence: {sequence},\n'
                     f'Structure (Brackets): {brackets}\n'
-                    f'Structure (coords): {coords}')
+                    f'Structure (coords): {coords_list}')
 
 
 def main():
